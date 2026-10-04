@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      Theme parent uses the MaterialComponents `.Bridge` variant so
+      MainActivity can host a BottomNavigationView (which requires a
+      MaterialComponents-derived theme) while every existing
+      AppCompat-based widget keeps its current behavior. The Bridge
+      theme intentionally does NOT override AppCompat widget styles, so
+      SwitchCompat / EditText / Button etc. continue to look the same;
+      only widgets that explicitly opt into Material styles (e.g.
+      BottomNavigationView) get the Material treatment.
+
+      Theme-level color + system-bar settings:
+        * `colorPrimary` is wired to the brand blue so any Material
+          widget that reads the primary token (BottomNavigationView's
+          active-state defaults, ripple highlights, etc.) picks it up
+          without needing per-widget overrides.
+        * `android:statusBarColor` is set to the window background so
+          the system status bar blends with the activity surface
+          rather than rendering as a dark band on Android 12 / 13 / 14.
+          On Android 15+ (API 35+) this attribute is a no-op because
+          edge-to-edge is enforced; we rely on the layout-side
+          `fitsSystemWindows` opt-in for the inset handling instead.
+        * `windowLightStatusBar` follows `@bool/window_light_status_bar`
+          so the status bar icon color flips with DayNight. Light mode
+          uses dark glyphs on the light background; night mode uses
+          light glyphs on the dark background.
+    -->
+    <style name="Theme.Bada" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="qsBgTop">@color/qs_bg_top</item>
+        <item name="qsBgBottom">@color/qs_bg_bottom</item>
+        <item name="qsSurface">@color/qs_card</item>
+        <item name="colorPrimaryDark">@color/brand_primary</item>
+        <item name="colorOnPrimary">@color/brand_on_primary</item>
+
+        <!--
+            App-wide brand face. Google Sans Flex is delivered via
+            Downloadable Fonts (see `res/font/google_sans_flex.xml`);
+            its glyph coverage is Latin + extended Latin only, and
+            the platform's standard glyph-fallback chain takes over
+            for Hangul / CJK so Korean strings keep rendering with
+            the system Korean font without us having to maintain a
+            per-locale theme override.
+
+            Both the AppCompat-namespaced (`fontFamily`) and the
+            android-namespaced (`android:fontFamily`) attributes are
+            set: AppCompat widgets read the former, framework widgets
+            (Toolbar title, AlertDialog title/message, system text
+            views) read the latter.
+        -->
+        <item name="fontFamily">@font/google_sans_flex</item>
+        <item name="android:fontFamily">@font/google_sans_flex</item>
+
+        <!--
+          Page and floating surfaces come from our own tokens rather than
+          the Bridge theme's AppCompat defaults (#280): the AppCompat night
+          background is #303030, brighter than our #1F1F1F-era cards, so the
+          dark theme rendered cards darker than the page. Day values equal
+          the AppCompat light defaults, so light mode is unchanged.
+        -->
+        <item name="android:colorBackground">@color/page_background</item>
+        <item name="android:windowBackground">@color/page_background</item>
+        <item name="android:colorBackgroundFloating">@color/surface_floating</item>
+        <item name="android:statusBarColor" tools:targetApi="l">?android:attr/colorBackground</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">@bool/window_light_status_bar</item>
+
+        <!--
+          Custom popup style for the toolbar overflow menu. Replaces
+          the default near-square popup background with a 16dp rounded
+          rectangle so the kebab popup matches the vivo / OriginOS
+          native look. Both `actionOverflowMenuStyle` (the toolbar's
+          own overflow) and `popupMenuStyle` (any in-code PopupMenu
+          we open later) point to the same style for consistency.
+        -->
+        <item name="actionOverflowMenuStyle">@style/PopupMenu.Bada</item>
+        <item name="popupMenuStyle">@style/PopupMenu.Bada</item>
+
+        <!--
+          Global button styling. Replaces AppCompat's default flat
+          gray rectangle with a frosted-glass-style background
+          (`btn_frosted_background`) at 24dp corner radius — applied
+          automatically to every plain `<Button>` in the app via the
+          AppCompat `buttonStyle` attribute. Borderless variants
+          (`?android:attr/borderlessButtonStyle`) opt out
+          per-Button.
+        -->
+        <item name="buttonStyle">@style/Widget.Bada.Button</item>
+        <item name="android:buttonStyle">@style/Widget.Bada.Button</item>
+
+        <!--
+          Override the platform-default Button text appearance
+          (`TextAppearance.AppCompat.Widget.Button`) which forces
+          `textAllCaps=true`. Using `?android:attr/textAppearanceButton`
+          as the resolution path means even Buttons that opt out of
+          our `Widget.Bada.Button` style (e.g. the
+          `?android:attr/borderlessButtonStyle` Skip / Reset variants)
+          still get the casing-preserved text.
+        -->
+        <item name="android:textAppearanceButton">@style/TextAppearance.Bada.Button</item>
+    </style>
+
+    <!--
+      Button text appearance with `textAllCaps=false` baked in. Every
+      Button in the app reads its text style from this appearance via
+      either `Widget.Bada.Button` (the buttonStyle override
+      above) or the activity-theme `android:textAppearanceButton`
+      attribute, so the previously-uppercased labels render in their
+      natural string-resource casing ("Send files" stays "Send files"
+      instead of becoming "SEND FILES"). Bold weight is kept here so
+      borderless variants — which inherit this appearance but not the
+      Widget.Bada.Button style — still read with the same visual
+      weight as the framed buttons.
+    -->
+    <style name="TextAppearance.Bada.Button" parent="TextAppearance.AppCompat.Widget.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget.Bada.Button" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/btn_frosted_background</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textAppearance">@style/TextAppearance.Bada.Button</item>
+        <!--
+          Two-pronged textAllCaps override (android: + bare attr)
+          guarantees the casing is preserved no matter which
+          framework path the Button reads from on the running
+          platform — some Android builds prefer the bare appcompat
+          attr resolution, others go straight to the platform
+          android: namespace.
+        -->
+        <item name="android:textAllCaps">false</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <!--
+          Centering belt-and-suspenders. AppCompatButton (Bridge
+          theme keeps it on AppCompat, no MaterialButton promotion)
+          was rendering text shifted noticeably LEFT of the button's
+          geometric center on this device. Root cause not fully
+          isolated, but combinations of these symptoms suggest
+          inherited padding asymmetry from `Widget.AppCompat.Button`
+          interacting with `paddingLeft`/`Right` set in dp:
+            * Reset all padding to 0 first, then explicitly
+              re-apply as paddingStart/paddingEnd (RTL-aware) so
+              the parent style's defaults can't bleed through.
+            * Both `android:gravity="center"` AND
+              `android:textAlignment="center"` so whichever path the
+              runtime resolves alignment from, it reads "center".
+        -->
+        <item name="android:gravity">center</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:textDirection">ltr</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:maxLines">2</item>
+        <!--
+          Zero out drawable-related space the platform Button's
+          parent style typically reserves. `drawablePadding` is the
+          gap between an inline compound drawable and the text;
+          even with no drawable set, the platform allocates this
+          space for layout stability. On Korean bold text long
+          enough to need most of the button width, that reserved
+          gap pushed the text visibly LEFT of the button's
+          geometric center. Forcing `drawablePadding=0dp` removes
+          the asymmetric reservation so `gravity=center` actually
+          centers the text against the button centerline.
+        -->
+        <item name="android:drawablePadding">0dp</item>
+        <!--
+          When MaterialComponents *does* promote (e.g. inside the
+          consent dialog's Material theme overlay), these
+          MaterialButton-specific attrs pull the (empty) icon slot
+          out of the horizontal layout so it cannot push the text
+          off-center.
+        -->
+        <item name="iconGravity">textTop</item>
+        <item name="iconPadding">0dp</item>
+    </style>
+
+    <style name="PopupMenu.Bada" parent="Widget.AppCompat.PopupMenu.Overflow">
+        <item name="android:popupBackground">@drawable/popup_menu_background</item>
+        <!--
+          `overlapAnchor=false` pushes the popup down below the
+          overflow icon instead of overlapping it; matches vivo's
+          drop-down placement so the kebab stays visible while the
+          menu is open.
+        -->
+        <item name="overlapAnchor">false</item>
+    </style>
+
+    <!--
+      Translucent bottom-sheet theme for SendActivity. The activity
+      window is made transparent and non-fullscreen
+      so its layout — a transparent FrameLayout scrim hosting a
+      bottom-anchored DraggableSheetLayout card — can float over the
+      app/launcher behind it like the send sheet:
+
+        * windowIsTranslucent / transparent windowBackground /
+          windowContentOverlay=null — the window has no opaque surface;
+          only the sheet card and a light dim layer paint.
+        * windowNoTitle — no action-bar title strip above the sheet.
+        * backgroundDimEnabled + backgroundDimAmount=0.2 — a soft
+          (not heavy) scrim behind the sheet, matching the
+          "light scrim, not fully dark" look.
+        * windowAnimationStyle — slide-up enter / slide-down exit
+          (see WindowAnimation.Bada.SendSheet) so the window rises
+          from the bottom edge in step with the sheet's own overshoot
+          entrance.
+
+      Inherits Theme.Bada so the brand font, button styling and color
+      tokens stay identical to the rest of the app.
+    -->
+    <style name="Theme.Bada.SendSheet" parent="Theme.Bada">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.2</item>
+        <!-- FAST open fade (~120ms) so the view slide-up starts sooner; see
+             WindowAnimation.Bada.SendSheet.Fast. Consent sheet stays on the 200ms one. -->
+        <item name="android:windowAnimationStyle">@style/WindowAnimation.Bada.SendSheet.Fast</item>
+    </style>
+
+    <!--
+      In-app full-screen send screen (SendActivityInApp). Same as Theme.Bada but
+      with a fade/morph window OPEN so the sending screen DISSOLVES in over the main
+      screen (per the "first screen morphs into the sending screen" design) instead
+      of the default OEM slide. CLOSE fades back out. The EXTERNAL share-sheet
+      SendActivity keeps Theme.Bada.SendSheet (unchanged).
+    -->
+    <style name="Theme.Bada.SendInApp" parent="Theme.Bada">
+        <item name="android:windowAnimationStyle">@style/WindowAnimation.Bada.SendInApp</item>
+    </style>
+
+    <!--
+      Window enter/exit for the IN-APP full-screen send (Theme.Bada.SendInApp).
+      OPEN enter = popup_fade_in (alpha 0->1 + a gentle 0.94->1.0 scale, 200ms
+      decelerate) so the sending screen fades/morphs into place; OPEN exit = no_anim
+      so the main screen holds underneath and the new screen dissolves OVER it (the
+      "morph" look). CLOSE exit = popup_fade_out (reverse) so it dissolves back out;
+      CLOSE enter = no_anim so the main screen is simply revealed. Unlike the sheet,
+      there is no inner view-slide here — the window fade IS the entrance.
+    -->
+    <style name="WindowAnimation.Bada.SendInApp" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/popup_fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/no_anim</item>
+        <item name="android:activityCloseEnterAnimation">@anim/no_anim</item>
+        <item name="android:activityCloseExitAnimation">@anim/popup_fade_out</item>
+        <item name="android:taskOpenEnterAnimation">@anim/popup_fade_in</item>
+        <item name="android:taskOpenExitAnimation">@anim/no_anim</item>
+        <item name="android:taskCloseEnterAnimation">@anim/no_anim</item>
+        <item name="android:taskCloseExitAnimation">@anim/popup_fade_out</item>
+    </style>
+
+    <!--
+      Window enter/exit animation pair for Theme.Bada.SendSheet.
+      OPEN = a soft FADE only (popup_fade_in: alpha 0->1 + a tiny scale, 200ms) —
+      deliberately NOT a vertical slide. The slide-up is done as a VIEW-level
+      animation INSIDE the window by DraggableSheetLayout.playEntrance, which
+      SendActivity triggers from onEnterAnimationComplete() — i.e. AFTER this window
+      fade has finished — so the view slide is no longer masked by / racing with the
+      window's own open transition. That race is the timing bug that made the sheet
+      "appear already settled" (fade only, no slide) on OnePlus. A fade here (no
+      translate) lets the 0.2 dim scrim appear smoothly WITHOUT competing with the
+      view slide. CLOSE keeps slide_down_out. (Style is also reused by
+      Theme.Bada.ReceiveSheet.)
+    -->
+    <style name="WindowAnimation.Bada.SendSheet" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/popup_fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_down_out</item>
+        <item name="android:taskOpenEnterAnimation">@anim/popup_fade_in</item>
+        <item name="android:taskCloseExitAnimation">@anim/slide_down_out</item>
+    </style>
+
+    <!--
+      FAST window enter/exit pair — used ONLY by Theme.Bada.SendSheet (the
+      send picker). Identical to WindowAnimation.Bada.SendSheet except the
+      OPEN enter uses the ~120ms popup_fade_in_fast instead of the 200ms
+      popup_fade_in, so onEnterAnimationComplete() fires sooner and the
+      DraggableSheetLayout view slide-up STARTS sooner — the "bridge starts the
+      animation sooner / over the still-fading chooser" feel. CLOSE is unchanged
+      (slide_down_out). The consent sheet (Theme.Bada.ReceiveSheet) keeps the
+      original 200ms WindowAnimation.Bada.SendSheet above, so only the send
+      sheet's entrance speeds up.
+    -->
+    <style name="WindowAnimation.Bada.SendSheet.Fast" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/popup_fade_in_fast</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_down_out</item>
+        <item name="android:taskOpenEnterAnimation">@anim/popup_fade_in_fast</item>
+        <item name="android:taskCloseExitAnimation">@anim/slide_down_out</item>
+    </style>
+
+    <!--
+      Translucent bottom-sheet theme for ConsentTrampolineActivity.
+      Mirrors Theme.Bada.SendSheet:
+      the activity window is made transparent and non-fullscreen so its
+      layout — a transparent FrameLayout scrim hosting a bottom-anchored
+      DraggableSheetLayout card — floats over whatever is behind it like
+      the receive sheet:
+
+        * windowIsTranslucent / transparent windowBackground /
+          windowContentOverlay=null — the window has no opaque surface;
+          only the sheet card and a light dim layer paint. This replaces
+          the old centered Theme.Bada.ConsentDialog (windowIsFloating
+          dialog) so the consent surface reads as a bottom sheet.
+        * windowNoTitle — no action-bar title strip above the sheet.
+        * backgroundDimEnabled + backgroundDimAmount=0.2 — a soft scrim
+          behind the sheet, matching the "light scrim" look and
+          the sender sheet's dim.
+        * windowAnimationStyle — slide-up enter / slide-down exit
+          (reuses WindowAnimation.Bada.SendSheet) so the window
+          rises from the bottom edge in step with the sheet's own
+          overshoot entrance.
+
+      Inherits Theme.Bada so the brand font, button styling and color
+      tokens (including the Widget.Bada.Button frosted style the consent
+      / completed panels rely on) stay identical to the rest of the app
+      — no need to re-declare them here as the old Dialog theme did,
+      because Theme.Bada already carries them.
+    -->
+    <style name="Theme.Bada.ReceiveSheet" parent="Theme.Bada">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.2</item>
+        <item name="android:windowAnimationStyle">@style/WindowAnimation.Bada.ReceiveSheet</item>
+    </style>
+
+    <!--
+      Window enter/exit pair for Theme.Bada.ReceiveSheet. The consent
+      sheet lives in its OWN task (taskAffinity="", launched with
+      FLAG_ACTIVITY_NEW_TASK from the notification tap / full-screen
+      intent), so the task transitions — including taskToFront for a
+      singleTop re-open — must all be pinned here; any slot left to the
+      OEM default plays the skin's app-open zoom on the translucent
+      window, which reads as a ghost app window trailing out behind the
+      sheet. Enter is a fade-only dim ease-in (sheet_dim_fade_in — see
+      that file for why no scale); the visible rise is the sheet's own
+      view-level slide-up. Exit slides the window down, the same close
+      the send sheet uses.
+    -->
+    <style name="WindowAnimation.Bada.ReceiveSheet" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/sheet_dim_fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_down_out</item>
+        <item name="android:taskOpenEnterAnimation">@anim/sheet_dim_fade_in</item>
+        <item name="android:taskCloseExitAnimation">@anim/slide_down_out</item>
+        <item name="android:taskToFrontEnterAnimation">@anim/sheet_dim_fade_in</item>
+        <item name="android:taskToBackExitAnimation">@anim/slide_down_out</item>
+    </style>
+
+    <!--
+      Translucent window for the Name Card transfer screen (NameCardTransferActivity).
+      Like Theme.Bada.ReceiveSheet it floats over whatever is behind it, but with NO dim
+      and no window animation, so the previous screen shows through fully and the only
+      motion is the screen's own view-level entrance/exit. Inherits Theme.Bada, so colors,
+      fonts and button styling are unchanged — this only controls window transparency.
+    -->
+    <style name="Theme.Bada.NameCardTransfer" parent="Theme.Bada">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <!--
+      Toolbar title text style — larger and bolder than the platform
+      default to match the vivo / OriginOS native header pattern (the
+      "연락처" title on a vivo Contacts screen sits at ~26sp bold,
+      noticeably bigger than AOSP's 20sp regular). The toolbar also
+      uses an 88dp height with `paddingTop=32dp` so the title /
+      action row hugs the bottom of the toolbar surface, which is
+      where vivo positions theirs.
+    -->
+    <style name="TextAppearance.Bada.ToolbarTitle" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!--
+      Bottom-nav label text style. Pinned to a single 12sp regular
+      appearance so the active and inactive tab labels render at the
+      identical size — Material's default is to render the active
+      label slightly larger ("shifting" labels), which the user
+      explicitly does not want; on vivo native bars the label size
+      is constant and only the color changes between states.
+
+      Applied to both `app:itemTextAppearanceActive` and
+      `app:itemTextAppearanceInactive` on BottomNavigationView so
+      neither state overrides the size.
+    -->
+    <style name="TextAppearance.Bada.BottomNavLabel" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+
+    <!--
+      Popup theme overlay applied to MainActivity's MaterialToolbar via
+      `app:popupTheme`. Overrides `listPreferredItemHeightSmall`
+      (default 48dp on MaterialComponents) to 38dp — about a 20% cut
+      from the AOSP default — so each overflow row becomes more
+      compact, matching the vivo / OriginOS popup density.
+
+      Parented on `ThemeOverlay.AppCompat.DayNight` (NOT the older
+      `…AppCompat.Light` we used initially) so popup item text /
+      surface follow the system mode. Forcing `Light` made the
+      kebab popup render with a black-on-dark item label in night
+      mode — invisible against the dark popup_menu_surface.
+
+      The height override is applied to BOTH the AppCompat-namespaced
+      and android-namespaced versions of the attribute because the
+      MaterialComponents popup item layout reads the AppCompat one
+      while older AppCompat fallbacks read the platform one; setting
+      both keeps behavior identical regardless of which path the
+      runtime picks.
+    -->
+    <style name="ThemeOverlay.Bada.PopupMenu" parent="ThemeOverlay.AppCompat.DayNight">
+        <item name="listPreferredItemHeightSmall">38dp</item>
+        <item name="android:listPreferredItemHeightSmall">38dp</item>
+    </style>
+
+    <!--
+      Theme overlay applied to MainActivity's MaterialToolbar via
+      `app:theme`. Swaps the platform-default circular ripple
+      (`?attr/actionBarItemBackground`) on toolbar action items
+      (currently the kebab / overflow icon) for a flat rectangular
+      state-list wash (`@drawable/toolbar_action_background`) so
+      tapping the kebab reads as "the icon brightens slightly" rather
+      than firing a circular ripple animation. The override is
+      isolated to a theme overlay (rather than the global app theme)
+      so popup menus and dialog action items elsewhere keep their
+      default Material ripples.
+    -->
+    <style name="ThemeOverlay.Bada.ToolbarNoRipple" parent="">
+        <item name="actionBarItemBackground">@drawable/toolbar_action_background</item>
+        <item name="android:actionBarItemBackground">@drawable/toolbar_action_background</item>
+    </style>
+
+    <!--
+      Shape overlay used by the Credit screen's avatar ShapeableImageViews
+      so the contributor photos clip with the same 12dp rounded corners as
+      the gradient `credit_avatar_placeholder` drawable. Without this
+      overlay a raster avatar would render as a hard-edged square next to
+      the placeholder's soft corners and the rows would read as visually
+      inconsistent.
+    -->
+    <style name="ShapeAppearanceOverlay.Bada.CreditAvatar" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+</resources>

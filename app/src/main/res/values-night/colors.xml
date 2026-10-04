@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Night-mode color overrides. Applied automatically by the resource
+  system whenever the platform reports `Configuration.uiMode &
+  UI_MODE_NIGHT_YES` — i.e. when the user has system-wide dark mode
+  on, or per-app dark mode for Bada.
+
+  Only colors that need to differ between day and night live here;
+  brand_primary, the QR bitmap white, and other mode-agnostic
+  values stay in `values/colors.xml`. When adding a new color
+  token, add it to the day file FIRST (so the fallback always
+  resolves), then override here only if night needs different
+  values.
+
+  Layering convention (night mode):
+    * Page background — `page_background` (#161616), pinned through
+      `android:colorBackground` / `windowBackground` in `Theme.Bada`.
+      The Bridge theme's AppCompat default was #303030, brighter than
+      the cards, which inverted this whole hierarchy (#280).
+    * `surface_card` (#202020) — card surface that stands ~one step
+      brighter than the page bg. Reads as a "lit card" against the
+      dark page, mirroring how the white card reads against the
+      light gray page in day mode.
+    * `surface_chip` (#2B2B2B) — chip / inset surface one step
+      brighter still, so the same "card-on-card" hierarchy carries
+      from day to night.
+    * Hairline strokes — flipped to white at low alpha so they
+      remain visible against the dark surfaces. The day-mode
+      values (alpha black) would disappear entirely on a dark
+      surface.
+-->
+<resources>
+    <!-- Bottom-navigation surface flips dark so the nav bar reads
+         against the dark page bg without being a bright stripe. -->
+    <color name="nav_surface">#FF202020</color>
+    <color name="nav_item_inactive">#FFAAAAAA</color>
+
+    <!-- Card / chip surfaces. -->
+    <color name="page_background">#FF161616</color>
+    <color name="surface_floating">#FF202020</color>
+    <color name="surface_card">#FF202020</color>
+    <color name="surface_chip">#FF2B2B2B</color>
+    <color name="surface_card_stroke">#1FFFFFFF</color>
+    <color name="surface_chip_stroke">#33FFFFFF</color>
+
+    <!-- Frosted button. White-on-dark translucent at lower alpha so
+         the soft glass feel survives without becoming a bright pill
+         on a dark page. Ripple uses the lighter brand tint at higher
+         alpha for legibility against the darker plate. -->
+    <color name="frosted_button_fill">#1FFFFFFF</color>
+    <color name="frosted_button_stroke">#33FFFFFF</color>
+    <color name="frosted_button_disabled">#1A000000</color>
+    <color name="frosted_button_ripple">#3D5B82FF</color>
+    <!-- Pressed wash mirrors the day token: lighter brand tint at
+         higher alpha so the instant pressed cue stays legible on the
+         darker plate. See values/colors.xml for why this exists. -->
+    <color name="frosted_button_pressed">#455B82FF</color>
+
+    <!-- Popup menu surface flips dark too — keeping it white on
+         dark would create a glaring rectangle when the toolbar
+         overflow opens. -->
+    <color name="popup_menu_surface">#FF2B2B2B</color>
+
+    <!-- Card gradient endpoints. Slight navy tint at top fading to
+         the standard dark surface at the bottom so the consent /
+         send card still reads as a soft gradient surface in night
+         mode rather than a flat dark plate. -->
+    <color name="card_dialog_gradient_top">#FF262B31</color>
+    <color name="card_dialog_gradient_bottom">#FF202020</color>
+
+    <!-- PIN pairing surface. Tone down both endpoints so the PIN
+         backdrop isn't the brightest thing on a dark screen, but
+         keep enough sky-blue tint that it still reads as the
+         "calm pairing" surface. -->
+    <color name="pin_state_gradient_inner">#FF262E3A</color>
+    <color name="pin_state_gradient_outer">#FF171D27</color>
+
+    <!-- Drag handle on the help sheet. Mid-white reads as a "drag
+         me" affordance against the dark sheet. -->
+    <color name="bottom_sheet_drag_handle">#80FFFFFF</color>
+
+    <!-- Avatar stroke flips to a soft white. -->
+    <color name="credit_avatar_stroke">#33FFFFFF</color>
+
+    <!-- Card blur overlay flips to translucent black so the
+         blurred backdrop is darkened (not lightened) on a dark
+         page; foreground panel text stays readable on top. -->
+    <color name="card_blur_overlay">#00000000</color>
+    <!--
+      Send-picker radio banner (#290): low-alpha brand blue plate + hairline
+      so the box tints the sheet surface instead of adding a solid colour.
+    -->
+    <color name="radio_banner_fill">#145B82FF</color>
+    <color name="radio_banner_stroke">#2E5B82FF</color>
+    <!-- Settings master switch ON plate (#239): lighter brand tint on the dark chip surface. -->
+    <color name="master_on_fill">#2E5B82FF</color>
+    <color name="master_on_stroke">#4D5B82FF</color>
+</resources>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="qs_bg_top">#E8F0FF</color>
+    <color name="qs_bg_bottom">#FFFFFF</color>
+    <color name="qs_card">#FFFFFFFF</color>
+    <color name="qs_sheet_surface">#FFFFFFFF</color>
+    <color name="qs_pill_track">#FFFFFFFF</color>
+    <color name="qs_pill_segment_active">#E8EDF3</color>
+    <color name="qs_surface_soft">#FFFFFFFF</color>
+    <color name="qs_button_fill">#FFFFFFFF</color>
+    <color name="qs_text_primary">#14171A</color>
+    <color name="qs_text_secondary">#6B7280</color>
+    <color name="qs_accent">#2E7DF6</color>
+    <color name="qs_accent_soft">#E6EFFF</color>
+    <color name="qs_stroke">#14000000</color>
+    <color name="qs_handle">#C7CDD6</color>
+    <color name="qs_scrim">#66000000</color>
+    <!-- Pure black (AMOLED) -->
+    <color name="qs_black_bg_top">#000000</color>
+    <color name="qs_black_bg_bottom">#000000</color>
+    <color name="qs_black_surface">#0A0A0A</color>
+</resources>

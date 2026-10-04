@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="qs_bg_top">#1C1C1F</color>
+    <color name="qs_bg_bottom">#000000</color>
+    <color name="qs_card">#1C1C1E</color>
+    <color name="qs_sheet_surface">#1C1C1E</color>
+    <color name="qs_pill_track">#1C1C1E</color>
+    <color name="qs_pill_segment_active">#2C2C2E</color>
+    <color name="qs_surface_soft">#1C1C1E</color>
+    <color name="qs_button_fill">#1C1C1E</color>
+    <color name="qs_text_primary">#FFFFFFFF</color>
+    <color name="qs_text_secondary">#9A9AA2</color>
+    <color name="qs_accent">#5AA0FF</color>
+    <color name="qs_accent_soft">#1A2A44</color>
+    <color name="qs_stroke">#1FFFFFFF</color>
+    <color name="qs_handle">#55FFFFFF</color>
+    <color name="qs_scrim">#99000000</color>
+</resources>

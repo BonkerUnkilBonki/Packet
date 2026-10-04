@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Phase 1 + Phase 2 permission set for Quick Share over Wi-Fi LAN
+      with BLE auto-discovery.
+
+      Runtime (must be requested at app start, gated by API level):
+        * NEARBY_WIFI_DEVICES (API 33+) — required for any local-network
+          discovery/advertising. We never derive physical location from peer
+          scans, so we set neverForLocation per Google's guidance and skip
+          ACCESS_FINE_LOCATION on API 33+ devices.
+        * POST_NOTIFICATIONS (API 33+) — used by the foreground transfer
+          service notification (#21) and incoming-transfer notifications.
+        * BLUETOOTH_ADVERTISE (API 31+, #31) — required to broadcast the
+          Quick Share BLE service-data pulse so stock receivers wake up
+          their mDNS responder when our app starts a send (#32).
+        * BLUETOOTH_SCAN (API 31+, #31) — required to scan for senders'
+          BLE pulses so we only enable our mDNS responder when a sender is
+          nearby (#33). neverForLocation tells Android we never derive
+          physical location from BLE scan results, so the platform skips
+          the location-permission requirement.
+
+      Compile-time (no runtime prompt):
+        * INTERNET / ACCESS_NETWORK_STATE / ACCESS_WIFI_STATE — local
+          socket I/O, network/Wi-Fi state inspection.
+        * CHANGE_WIFI_MULTICAST_STATE — required to satisfy the Android
+          14+ permission gate on starting a foreground service with type
+          `connectedDevice`. The platform requires the app to hold
+          FOREGROUND_SERVICE_CONNECTED_DEVICE plus *at least one* of a
+          fixed set of "active connection" permissions; the runtime
+          BLUETOOTH_ADVERTISE / BLUETOOTH_SCAN we already declare are
+          eligible, but only once the user has granted them, which is
+          not the case on first launch from the launcher. A normal
+          permission like CHANGE_WIFI_MULTICAST_STATE satisfies the gate
+          unconditionally and matches our Wi-Fi LAN role. We do not
+          actively acquire a MulticastLock — NsdManager handles mDNS in
+          the system responder process post-#98 — so the declaration is
+          purely for the FGS-type gate.
+        * BLUETOOTH / BLUETOOTH_ADMIN (API ≤ 30, #31) — legacy permission
+          model for pre-Android-12 devices. Capped with maxSdkVersion=30
+          so API 31+ devices use the runtime BLUETOOTH_ADVERTISE /
+          BLUETOOTH_SCAN permissions instead.
+
+      BLUETOOTH_CONNECT is declared (API 31+) for the Phase 4 Bluetooth
+      bandwidth-upgrade mediums:
+        * Bluetooth RFCOMM (#51) — the provider opens an insecure
+          RFCOMM listener on the receiver and connects from the sender;
+          both calls require BLUETOOTH_CONNECT at runtime on API 31+.
+          Pairing is NOT required (we use the *insecure* RFCOMM variants
+          because the application data is already UKEY2-encrypted) so
+          the user does not see an OS pairing prompt — but the runtime
+          permission grant is still mandatory.
+        * BLE L2CAP CoC (#52) — BleL2capMediumProvider calls
+          BluetoothAdapter.listenUsingInsecureL2capChannel on the
+          receiver side and BluetoothDevice.createInsecureL2capChannel
+          on the sender side; both require BLUETOOTH_CONNECT at runtime
+          on API 31+.
+      The :discovery-android library manifest also declares this
+      permission at the library level so it propagates into the merged
+      manifest automatically; onboarding (#31) prompts for it alongside
+      the existing BLE permissions.
+
+      READ_MEDIA_* is intentionally omitted — Phase 1 routes all media
+      access through the system share-intent flow, which does not require
+      direct media permissions.
+    -->
+
+    <!-- Wi-Fi peer discovery on API 33+. neverForLocation tells Android we
+         do not infer physical location from these scans, so the platform
+         skips the location permission requirement. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="33" />
+
+    <!-- Notification posting on API 33+. Pre-33 devices show notifications
+         without a runtime prompt, so the manifest-level entry is gated. -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
+
+    <!-- Live Updates / promoted-ongoing notifications (Android 16+). Lets the
+         in-flight transfer-progress notification surface in the status-bar
+         chip and OEM dynamic islands (Pixel Live Updates, Xiaomi Hyper Island;
+         OnePlus Live Alerts is currently allowlist-limited). Non-runtime
+         permission; ignored below API 36. -->
+    <uses-permission
+        android:name="android.permission.POST_PROMOTED_NOTIFICATIONS"
+        tools:targetApi="36" />
+
+    <!-- Phase 2 BLE auto-discovery permissions (#31). Runtime on API 31+.
+         BLUETOOTH_SCAN uses neverForLocation so the platform does not
+         require ACCESS_FINE_LOCATION; we do not derive physical location
+         from BLE pulse scans. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADVERTISE"
+        tools:targetApi="31" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="31" />
+
+    <!-- Phase 4 Bluetooth RFCOMM bandwidth-upgrade (#51). Runtime on
+         API 31+. Pairing is intentionally not required (insecure RFCOMM
+         variants); UKEY2 is the security boundary. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        tools:targetApi="31" />
+
+    <!-- Legacy Bluetooth permission model for API ≤ 30. Capped with
+         maxSdkVersion=30 so API 31+ devices use the runtime BLUETOOTH_*
+         permissions above instead of these grant-at-install variants. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!-- General networking (compile-time). -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Lets the automatic update's "Download & install" action install the
+         downloaded APK via PackageInstaller (a true drop-in self-update). The
+         "install unknown apps" grant it gates on is one-time (not per-boot). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- The update-download worker (UpdateInstallWorker) runs as expedited
+         WorkManager work, which is executed inside WorkManager's foreground
+         service on pre-API-31 devices. API 34+ requires the service's FGS
+         type (dataSync, declared on SystemForegroundService below) to be
+         backed by this typed permission. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- Bind the radio-helper companion APK's RadioService (signature-protected
+         BIND_RADIO) so the app can ask it to turn Wi-Fi/Bluetooth on for a transfer
+         and restore them after. Granted only when Bada is signed with the same key
+         as the helper. See the :radio-helper module + RadioHelperClient. -->
+    <uses-permission android:name="dev.bluehouse.bada.radiohelper.permission.BIND_RADIO" />
+
+    <!-- NFC tap-to-share (#NFC). NFC is install-time normal protection;
+         BIND_NFC_SERVICE on the HCE service below is the actual gate and is
+         auto-granted to the system NFC service. The hce feature is
+         required=false so the app still installs on phones without NFC
+         hardware (the HCE service is simply never bound there). -->
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature
+        android:name="android.hardware.nfc.hce"
+        android:required="false" />
+
+    <!-- Wi-Fi local-only hotspot bandwidth-upgrade medium (#50). Both
+         lines are required by WifiManager.startLocalOnlyHotspot on
+         API 26+ — CHANGE_WIFI_STATE is install-time normal protection
+         level; ACCESS_FINE_LOCATION is the runtime grant the platform
+         demands before it will surface the SSID/passphrase in the
+         LocalOnlyHotspotReservation callback. The provider in
+         :discovery-android also accepts NEARBY_WIFI_DEVICES (already
+         declared above for Wi-Fi peer discovery) as a substitute on
+         API 33+ devices, so the location grant is requested at
+         onboarding only when the platform requires it. -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Satisfies the Android 14+ FGS-type gate for `connectedDevice`.
+         Normal protection level, so no runtime prompt. We do not actually
+         acquire a MulticastLock — NsdManager handles mDNS in the system
+         responder process post-#98 — but the platform requires we hold
+         at least one permission from a fixed set when starting a
+         connectedDevice FGS, and this is the cleanest one that does not
+         depend on a runtime grant. -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+    <!--
+      Full-screen-intent permission for the consent trampoline (#22).
+      The notification posted by ConsentNotification carries
+      `setFullScreenIntent(..., highPriority=true)` so the platform
+      raises ConsentTrampolineActivity directly over whatever the user
+      is doing — same UX as an incoming phone call. Without this
+      declaration the platform silently degrades the
+      full-screen-intent to a regular heads-up notification on every
+      Android version.
+
+      On Android 14+ (API 34) the permission is declared at install
+      time but auto-restricted to default phone / SMS / calendar /
+      alarm apps; Quick Share senders / file-receiver apps fall outside
+      that whitelist and the user has to grant access manually via
+      Settings → Apps → Special app access → "Send full-screen
+      notifications". When the grant is missing the platform falls
+      back to the existing heads-up + tap-to-open trampoline path —
+      both Accept / Reject buttons stay reachable inline so the
+      consent flow is never stuck behind the missing permission.
+    -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <!--
+      Gallery thumbnail preview on the Send/Receive tab. Used purely
+      to read two random images from the device's MediaStore so we
+      can render them as a decorative "ready to receive" cue. We
+      ship both the modern `READ_MEDIA_IMAGES` (Android 13+) and the
+      legacy `READ_EXTERNAL_STORAGE` (Android 12-) split by SDK
+      bounds because the platform changed media-permission models in
+      API 33; declaring both keeps the same single runtime permission
+      ask working from API 24 through API 36.
+
+      The decorative use is non-essential: when the user denies the
+      permission, SendReceiveFragment leaves the polaroid cards as
+      empty white frames and the rest of the screen functions
+      normally. We never read EXIF, location data, or anything other
+      than the image bytes themselves.
+    -->
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
+        tools:targetApi="33" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- #47 battery-optimization onboarding. Required for the user to
+         actually accept the exemption from the
+         ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS dialog the helper
+         opens — without this declaration the system Settings activity
+         still shows but the toggle is a no-op. The permission is normal
+         protection level (no runtime prompt) and must be paired with a
+         clear in-app rationale per Google Play policy; the banner copy
+         in main_battery_banner_body explains why we ask. The Quick
+         Share receiver is foreground-service driven, so the exemption
+         is the only way to keep Galaxy / vivo / MIUI background-app
+         killers from severing in-flight transfers. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Name Card (tap-to-share contacts): the "Use my phone info" button in the
+         My Name Card setup screen reads the device "Me" contact name and the SIM
+         line number to pre-fill the card. Both are runtime-requested on demand and
+         purely optional (the user can type the card manually); a denial is handled
+         gracefully. READ_PHONE_NUMBERS is the modern (API 33+) number read;
+         READ_PHONE_STATE backs the legacy getLine1Number() path below API 33. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- Name Card: save a received contact directly via ContactsContract. Runtime,
+         optional — if not granted, the receive screen falls back to the system
+         Add-contact screen (ACTION_INSERT), which needs no permission. -->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+
+    <!-- #145: probe whether a coresident pre-Bada install is still present so
+         the launcher can warn the user to uninstall it. The old install
+         registers a duplicate `0xFEF3` GATT advertisement service on the same
+         controller, which causes stock Quick Share senders to read the slot from
+         one service but open the BLE socket against another. Package-visibility
+         filtering on API 30+ silently turns `getPackageInfo` into
+         NameNotFoundException for unknown packages, so the detector cannot find
+         the legacy install without this carve-out. The query is by exact package
+         name only and reveals nothing other than "is a previous app id present?",
+         so the surface stays minimal. -->
+    <queries>
+        <package android:name="dev.bluehouse.libredrop" />
+        <package android:name="dev.bluehouse.libredrop.debug" />
+        <package android:name="io.github.kyujincho.wvmg" />
+        <package android:name="io.github.kyujincho.wvmg.debug" />
+        <!-- The radio-helper companion APK, bound by RadioHelperClient to flip
+             Wi-Fi/Bluetooth for a transfer (release + debug ids). -->
+        <package android:name="dev.bluehouse.bada.radiohelper" />
+        <package android:name="dev.bluehouse.bada.radiohelper.debug" />
+    </queries>
+
+    <application
+        android:name=".BadaApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Bada">
+
+        <!--
+            Pre-fetch the Google Sans Flex downloadable font during
+            install / first launch so the very first frame using the
+            theme's `fontFamily` renders against the brand face rather
+            than the system fallback while the binary is still being
+            delivered from Google Play Services.
+        -->
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!--
+              Long-press on Bada's Quick Settings tile (issue #207). The
+              platform fires ACTION_QS_TILE_PREFERENCES; without a matching
+              activity it falls back to the system App Info page. Routing
+              it to MainActivity opens the in-app surface the user actually
+              expects when they long-press the tile.
+            -->
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          One UI Quick Share bottom panel. Opened from the Quick Settings
+          tile; floats over the app the user is currently in. taskAffinity=""
+          gives it its own task so launching it never pulls Packet's main
+          task to the foreground.
+        -->
+        <activity
+            android:name=".panel.QuickSharePanelActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Packet.Panel" />
+
+        <activity
+            android:name=".onboarding.PermissionsOnboardingActivity"
+            android:exported="false"
+            android:label="@string/onboarding_title" />
+
+        <!--
+          Credit screen reachable from MainActivity's overflow menu.
+          Currently a placeholder; the real contributors /
+          acknowledgements content lands here later. parentActivityName
+          is set so Android's Up navigation routes back to MainActivity
+          even when the activity is launched from a notification deep
+          link in the future.
+        -->
+        <activity
+            android:name=".ui.CreditActivity"
+            android:exported="false"
+            android:label="@string/credit_activity_label"
+            android:parentActivityName=".MainActivity" />
+
+        <!--
+          "Check for updates" screen reachable from MainActivity's
+          overflow menu. Runs a one-shot GitHub releases/latest query
+          via UpdateRepository / UpdateChecker and opens the matching
+          release page when the user taps "Update".
+        -->
+        <activity
+            android:name=".update.CheckForUpdatesActivity"
+            android:exported="false"
+            android:label="@string/update_activity_label"
+            android:parentActivityName=".MainActivity" />
+
+        <!--
+          Invisible trampoline for the update notification's
+          "Download & install" action. Has NO UI of its own (translucent
+          theme); it only gates the one-time "install unknown apps" grant and
+          then kicks off UpdateDownloadInstaller (download → system installer).
+          noHistory + excludeFromRecents so it never lingers in the task list.
+          exported=false: only the app's own notification PendingIntent
+          launches it.
+        -->
+        <activity
+            android:name=".update.UpdateInstallActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!--
+          Sender share-intent target (#24).
+
+          ACTION_SEND (single attachment) and ACTION_SEND_MULTIPLE
+          (multiple attachments) are the entry points the system share
+          sheet routes to when the user picks our app. We accept */* so
+          we appear for every MIME type — file-type restrictions, if
+          any, are applied in code so users get a clearer "not
+          supported" message than the share sheet hiding us.
+
+          Exported because the share sheet runs in a different process
+          (system-ui) and needs to be able to start this activity.
+        -->
+        <activity
+            android:name=".send.SendActivity"
+            android:exported="true"
+            android:label="@string/send_activity_label"
+            android:theme="@style/Theme.Bada.SendSheet">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          In-app sender screen. Launched ONLY from inside the app
+          (SendReceiveFragment "Send files" / "Send folder") — the original
+          full-screen Bada presentation, NOT the bottom sheet. exported=false +
+          no intent-filter so the system share sheet never routes here; the
+          external ACTION_SEND path stays on the bottom-sheet SendActivity above.
+        -->
+        <activity
+            android:name=".send.SendActivityInApp"
+            android:exported="false"
+            android:label="@string/send_activity_label"
+            android:theme="@style/Theme.Bada.SendInApp" />
+
+        <!--
+          QR-code display screen launched from SendActivity (#24 + #20).
+
+          Internal — only SendActivity launches it, so exported=false.
+        -->
+        <activity
+            android:name=".send.ShowQrActivity"
+            android:exported="false"
+            android:label="@string/show_qr_title" />
+
+        <!--
+          NFC link broadcast HCE service (NDEF Tag Application D2760000850101).
+
+          Emulates an NFC Forum Type-4 NDEF tag whose single URI record is the
+          current Bada pairing link (NfcLinkHolder.currentUrl, set by the Send UI
+          while the QR/link panel is showing). An iPhone tapped to the back of
+          this phone background-reads the URI and opens it in Safari (the URL is
+          an ordinary web link, not an App Store / universal link).
+
+          Distinct AID from the Quick Share tap-to-share service below, so both
+          HostApduServices coexist on the one NFC controller. exported=true +
+          BIND_NFC_SERVICE: only the system NFC service binds and routes APDUs
+          here, so this is not a third-party-callable surface.
+        -->
+        <service
+            android:name=".nfc.BadaNdefApduService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/bada_apduservice" />
+        </service>
+
+        <!--
+          Quick Share NFC tap-to-share HCE receiver (AID F00000FE2C).
+
+          A stock Quick Share sender in reader-mode (or Bada's own reader-mode)
+          tapped to this phone SELECTs F00000FE2C and reads our hhwv response
+          (deym NfcTag + Wi-Fi-LAN rxInstantConnectionAdv), then connects to our
+          live TcpReceiverServer over Wi-Fi-LAN. The HCE only emits a real tag
+          while a receiver is live (gated in code via NfcTapLinkHolder); a cold
+          tap pre-binds a socket and fires ACTION_NFC_WAKE so the session comes
+          up and adopts it (single cold tap == warm).
+
+          exported=true + BIND_NFC_SERVICE: only the system NFC service binds and
+          routes APDUs here, so this is not a third-party-callable surface. The
+          HOST_APDU_SERVICE intent-filter + host_apdu_service meta-data register
+          the AID group with the platform.
+        -->
+        <service
+            android:name=".nfc.BadaTapHceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/bada_tap_apduservice" />
+        </service>
+
+        <!--
+          Consent trampoline (#22) — the screen-on, lock-screen-bypassing
+          dialog opened by tapping the consent notification body.
+
+          Launched by the consent notification's content PendingIntent
+          (background path) and programmatically by ConsentCoordinator
+          when Bada is foregrounded (#151 modal path). Both
+          launches are package-scoped, so exported=false.
+
+          launchMode is `singleTop` so a coordinator-driven re-launch
+          while the activity is already up routes through onNewIntent
+          rather than creating a duplicate. excludeFromRecents keeps
+          consent prompts out of the recents list — each prompt is
+          transient, not history the user wants to revisit.
+
+          showOnLockScreen / turnScreenOn are also set programmatically
+          on API 27+ via Activity setShowWhenLocked / setTurnScreenOn;
+          the manifest attributes here are belt-and-braces for the
+          launcher hint.
+        -->
+        <!--
+          taskAffinity="" detaches the consent sheet from the app's main
+          task: the notification tap / full-screen intent launches it with
+          FLAG_ACTIVITY_NEW_TASK, and with the default affinity that
+          resolved INTO the app task — bringing MainActivity forward
+          underneath the translucent sheet, so a notification tap read as
+          "the whole app opened". With its own empty-affinity task, only
+          the sheet appears, floating over whatever the user was doing —
+          the same presentation stock Quick Share's receive prompt has.
+        -->
+        <activity
+            android:name=".consent.ConsentTrampolineActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:showOnLockScreen="true"
+            android:taskAffinity=""
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.Bada.ReceiveSheet"
+            android:label="@string/consent_activity_label" />
+
+        <!--
+          Quick Settings tile: opens the receiver "Ready to receive" sheet
+          straight from the system Quick Settings panel — making this device
+          discoverable to nearby Quick Share senders and forcing Wi-Fi/Bluetooth
+          on for the receive (both restored when the sheet is dismissed) without
+          the user opening the app first.
+
+          Required by the platform: exported=true plus the
+          BIND_QUICK_SETTINGS_TILE permission (only system_server, which
+          binds the tile, holds it) and the QS_TILE action filter. The
+          icon must be a 24dp solid-white VectorDrawable.
+
+          TOGGLEABLE_TILE reflects the tile's active/inactive state (it tracks
+          the receiver's always-visible override) for accessibility.
+        -->
+        <service
+            android:name=".tile.BadaQuickShareTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_qs_bada_visible"
+            android:label="@string/qs_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
+        </service>
+
+        <!--
+          My Name Card setup screen (tap-to-share contacts). Opened from the
+          "Name Card" row in Settings; lets the user enter the contact card
+          shared when two phones tap. Not exported (in-app navigation only).
+        -->
+        <activity
+            android:name=".namecard.NameCardSetupActivity"
+            android:exported="false"
+            android:label="@string/name_card_activity_label"
+            android:parentActivityName=".MainActivity" />
+
+        <!--
+          Name Card transfer screen (tap-to-share contacts). Full-screen consent page a tap drags
+          you into; both phones show their OWN card + Share / Receive Only. Plain Activity — NO
+          overlay permission, NO lock-screen bypass (it only ever appears while unlocked). singleTop
+          so a second tap routes through onNewIntent (ignored) instead of stacking.
+
+          exported=true is required ONLY for the NDEF_DISCOVERED intent-filter: the OS launches this
+          Activity FROM CLOSED on the reading phone via our AAR after a both-background tap. Android
+          maps a TNF_EXTERNAL_TYPE record urn:nfc:ext:bada.dev:namecard to the URI
+          vnd.android.nfc://ext/bada.dev:namecard, which this filter matches (scheme/host/pathPrefix
+          form is the documented one). Lowercase throughout to avoid case-normalization misses.
+
+          SECURITY: because it is exported, this activity trusts NOTHING from its Intent beyond the
+          OS-delivered NDEF token. Peer cards and roles flow exclusively through the in-process
+          NameCardLinkHolder session; any launch that is neither an NDEF dispatch nor a live-session
+          attach finishes immediately. See NameCardTransferActivity's class KDoc.
+        -->
+        <activity
+            android:name=".namecard.NameCardTransferActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            android:label="@string/name_card_activity_label"
+            android:theme="@style/Theme.Bada.NameCardTransfer">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:scheme="vnd.android.nfc"
+                    android:host="ext"
+                    android:pathPrefix="/bada.dev:namecard" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          Name Card exchange foreground service (card/server side). Started by
+          NameCardHceService on a tap to run the BLE GATT server (advertise token
+          + serve our card) and, when the peer writes its card, launch the
+          transfer screen. FGS type connectedDevice (Bluetooth); the app already
+          holds the connectedDevice FGS-type gate permission. Not exported.
+        -->
+        <service
+            android:name=".namecard.NameCardExchangeService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!--
+          Name Card tap HCE (proprietary AID F0534443415244). The card side of
+          the NameDrop-style tap-to-share-contacts feature: another Bada phone in
+          reader-mode SELECTs this AID + EXCHANGEs to read our rendezvous token
+          (NameCardHceService), waking both apps; the contact card itself is then
+          swapped over Bluetooth. Distinct AID from the iPhone NDEF service and the
+          Quick Share tap service so all three coexist. The card answers only while
+          the device is unlocked (gated in code). exported=true + BIND_NFC_SERVICE:
+          only the system NFC service binds/routes APDUs here.
+        -->
+        <service
+            android:name=".nfc.NameCardHceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/bada_namecard_apduservice" />
+        </service>
+
+        <!-- Receives PackageInstaller status for the auto-update "Download &
+             install" flow (UpdateDownloadInstaller). Not exported — only the
+             app's own session PendingIntent targets it; it launches the system
+             install confirm dialog (or a shade notification when backgrounded)
+             and toasts the result. -->
+        <receiver
+            android:name=".update.UpdateInstallReceiver"
+            android:exported="false" />
+
+        <!-- WorkManager's foreground-service host. The merge override pins the
+             dataSync FGS type so the expedited update-download worker
+             (UpdateInstallWorker) can foreground itself on API 34+, where an
+             FGS without a declared type crashes at startForeground(). -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
+
+    </application>
+
+</manifest>

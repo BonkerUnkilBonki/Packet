@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Packet.Panel" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
+        <item name="android:isLightTheme">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@style/Animation.Packet.Panel</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="colorPrimary">@color/qs_accent</item>
+        <item name="qsBgTop">@color/qs_bg_top</item>
+        <item name="qsBgBottom">@color/qs_bg_bottom</item>
+        <item name="qsSurface">@color/qs_card</item>
+        <item name="colorAccent">@color/qs_accent</item>
+        <item name="android:textColorPrimary">@color/qs_text_primary</item>
+        <item name="android:textColorSecondary">@color/qs_text_secondary</item>
+    </style>
+    <style name="Animation.Packet.Panel" parent="@android:style/Animation.Dialog">
+        <item name="android:windowEnterAnimation">@anim/qs_panel_slide_up</item>
+        <item name="android:windowExitAnimation">@anim/qs_panel_slide_down</item>
+    </style>
+    <!-- Applied at runtime (theme.applyStyle) for the pure-black theme. -->
+    <style name="Theme.Packet.PitchBlack" parent="">
+        <item name="qsBgTop">@color/qs_black_bg_top</item>
+        <item name="qsBgBottom">@color/qs_black_bg_bottom</item>
+        <item name="qsSurface">@color/qs_black_surface</item>
+        <item name="android:colorBackground">@color/qs_black_bg_bottom</item>
+        <item name="android:windowBackground">@color/qs_black_bg_bottom</item>
+    </style>
+</resources>

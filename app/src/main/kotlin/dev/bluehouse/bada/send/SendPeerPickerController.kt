@@ -1,0 +1,662 @@
+/*
+ * Copyright 2026 Bada contributors.
+ *
+ * Licensed under the Apache License, Version 2.0.
+ */
+package dev.bluehouse.bada.send
+
+import android.bluetooth.BluetoothAdapter
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import dev.bluehouse.bada.R
+import dev.bluehouse.bada.databinding.ActivitySendBinding
+import dev.bluehouse.bada.discovery.NearbyPeer
+import dev.bluehouse.bada.discovery.NearbyPeerDiscovery
+import dev.bluehouse.bada.discovery.NearbyPeerEvent
+import dev.bluehouse.bada.discovery.NearbyPeerRoute
+import dev.bluehouse.bada.discovery.ble.BleAdvertiseHandle
+import dev.bluehouse.bada.discovery.ble.BleAdvertiser
+import dev.bluehouse.bada.protocol.endpoint.DeviceType
+import dev.bluehouse.bada.service.receiver.ReceiverAdvertisementStateHolder
+import dev.bluehouse.bada.ui.sheet.DeviceIconView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import dev.bluehouse.bada.discovery.diagnostics.DiagnosticLog as Log
+
+@Suppress(
+    "LongParameterList", // Every collaborator (UI, lifecycle, callbacks, sender id) is needed.
+    "TooManyFunctions", // Discovery, BLE pulse, rendering, and the radio banners each add a few small phases.
+)
+internal class SendPeerPickerController(
+    private val context: Context,
+    private val peerList: ViewGroup,
+    private val emptyState: TextView,
+    private val networkHint: View,
+    /** Bluetooth-off banner container + its "Turn on" action (#290). */
+    private val bluetoothOffBanner: View,
+    private val bluetoothOffAction: View,
+    private val subtitle: TextView,
+    private val lifecycle: Lifecycle,
+    private val scope: CoroutineScope,
+    private val onPeerSelected: (NearbyPeer) -> Unit,
+    /**
+     * Invoked after every discovery update with the current resolved-peer
+     * snapshot. The QR-code/link share path (#28) uses it to match peers
+     * against the active QR session and auto-connect; the normal picker
+     * flow ignores it. Default no-op so non-QR callers need not supply it.
+     */
+    private val onPeersResolved: (List<NearbyPeer>) -> Unit = {},
+    private val logDiagnostic: (String) -> Unit,
+    /**
+     * Sender's 4-byte endpoint slug. Threaded into the BLE FastInitiation
+     * pulse's `secret_id_hash` so stock GMS receivers classify the pulse
+     * as an active `type=NOTIFY` share instead of an all-zero-hash
+     * `type=SILENT` pulse.
+     */
+    private val senderEndpointId: String,
+    /**
+     * Reads the current Bluetooth and Wi-Fi state so the empty-state
+     * text can surface a contextual hint (#209). Defaults to a real
+     * reader backed by the system services; override in tests if needed.
+     */
+    private val radioStateReader: RadioStateReader = RadioStateReader(context),
+    /** Raises the system "turn on Bluetooth" request; wired by the hosting activity (#290). */
+    private val onEnableBluetoothRequested: () -> Unit = {},
+) {
+    /**
+     * Binding-based convenience constructor — the UNCHANGED call site for the external
+     * send SHEET ([SendActivity]). Extracts the 4 views the picker drives from the
+     * sheet's [ActivitySendBinding] and delegates to the view-based primary constructor,
+     * which the in-app full-screen [SendActivityInApp] uses directly with its own
+     * `ActivitySendFullscreenBinding` (identical view IDs).
+     */
+    internal constructor(
+        context: Context,
+        binding: ActivitySendBinding,
+        lifecycle: Lifecycle,
+        scope: CoroutineScope,
+        onPeerSelected: (NearbyPeer) -> Unit,
+        onPeersResolved: (List<NearbyPeer>) -> Unit = {},
+        logDiagnostic: (String) -> Unit,
+        senderEndpointId: String,
+        radioStateReader: RadioStateReader = RadioStateReader(context),
+        onEnableBluetoothRequested: () -> Unit = {},
+    ) : this(
+        context,
+        binding.sendPeerList,
+        binding.sendEmptyState,
+        binding.sendNetworkHint,
+        binding.sendBluetoothOffBanner,
+        binding.sendBluetoothOffBannerAction,
+        binding.sendSubtitle,
+        lifecycle,
+        scope,
+        onPeerSelected,
+        onPeersResolved,
+        logDiagnostic,
+        senderEndpointId,
+        radioStateReader,
+        onEnableBluetoothRequested,
+    )
+
+    private val peers: MutableList<NearbyPeer> = mutableListOf()
+
+    private var outboundPresenceJob: Job? = null
+    private var discoveryJob: Job? = null
+    private var emptyPeerHintJob: Job? = null
+
+    private val emptyPeerHintTimer: EmptyPeerHintTimer = EmptyPeerHintTimer()
+    private var bleAdvertiser: BleAdvertiser? = null
+    private var bleAdvertiseHandle: BleAdvertiseHandle? = null
+
+    /**
+     * Snapshot of the row contents the picker was last rendered with —
+     * one entry per visible peer in the order they were drawn, capturing
+     * only the fields the row actually displays (stableId for identity,
+     * title for the primary line, subtitle for the secondary line,
+     * deviceType for the disc icon).
+     *
+     * Used to short-circuit [renderPeerList] when a discovery event
+     * carries no display-relevant change. Without this gate, every BLE
+     * fast-advertisement observation (which includes a fresh `rssi:Int?`
+     * value, making the data-class equality on [NearbyPeer] flip every
+     * few hundred milliseconds) would trigger a full
+     * `container.removeAllViews()` + re-inflate cycle. With three or
+     * more peers in the list, that churn lands inside roughly 10% of
+     * tap windows and the user has to double-tap to register a click —
+     * exactly the symptom reported on multi-peer environments.
+     *
+     * deviceType participates in the comparison so a type that arrives
+     * or changes after the row was first drawn (e.g. UNKNOWN until an
+     * mDNS resolve lands LAPTOP, #277) still triggers a repaint with
+     * the right device-type icon.
+     */
+    private var lastRenderedRowSnapshot: List<RenderedRowSnapshot> = emptyList()
+
+    /**
+     * Follows the adapter while the picker is up so the Bluetooth-off
+     * banner (#290) drops the moment the user turns Bluetooth on, without
+     * waiting for the next resume.
+     */
+    private val bluetoothStateReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(
+                context: Context,
+                intent: Intent,
+            ) {
+                if (intent.action == BluetoothAdapter.ACTION_STATE_CHANGED) updateBluetoothOffBanner()
+            }
+        }
+    private var bluetoothStateReceiverRegistered = false
+
+    init {
+        bluetoothOffAction.setOnClickListener {
+            logDiagnostic("radio: user asked to turn Bluetooth on from the picker banner")
+            onEnableBluetoothRequested()
+        }
+    }
+
+    private data class RenderedRowSnapshot(
+        val stableId: String,
+        val title: String,
+        val subtitle: String,
+        val deviceType: DeviceType,
+    )
+
+    fun start() {
+        registerBluetoothStateReceiver()
+        updateBluetoothOffBanner()
+        outboundPresenceJob?.cancel()
+        outboundPresenceJob =
+            scope.launch {
+                val receiverWasAdvertising = ReceiverAdvertisementStateHolder.isAdvertising
+                if (receiverWasAdvertising) {
+                    logDiagnostic("discovery: waiting for receiver mDNS unpublish before browse")
+                }
+
+                val unpublishObserved = ReceiverAdvertisementStateHolder.awaitNotAdvertising()
+                if (!unpublishObserved) {
+                    logDiagnostic("discovery: receiver mDNS unpublish wait timed out; starting browse")
+                } else if (receiverWasAdvertising) {
+                    logDiagnostic("discovery: receiver mDNS unpublish observed")
+                }
+
+                if (lifecycle.currentState == Lifecycle.State.DESTROYED) return@launch
+                startDiscovery()
+                startEmptyPeerHintTimer()
+                startBleAdvertise()
+            }
+    }
+
+    fun stop() {
+        unregisterBluetoothStateReceiver()
+        outboundPresenceJob?.cancel()
+        discoveryJob?.cancel()
+        emptyPeerHintJob?.cancel()
+        stopBleAdvertise()
+    }
+
+    fun suspendPicker() {
+        discoveryJob?.cancel()
+        discoveryJob = null
+        emptyPeerHintJob?.cancel()
+        emptyPeerHintJob = null
+        networkHint.visibility = View.GONE
+    }
+
+    fun stopBleAdvertise() {
+        bleAdvertiseHandle?.close()
+        bleAdvertiseHandle = null
+        bleAdvertiser = null
+    }
+
+    fun onHintDismissed() {
+        emptyPeerHintTimer.markDismissed()
+        networkHint.visibility = View.GONE
+    }
+
+    /** Current resolved peers (snapshot) — used by the NFC tap-wake auto-connect. */
+    fun resolvedPeers(): List<NearbyPeer> = peers.toList()
+
+    /**
+     * Re-resolve [peer]'s current LAN address by running a short,
+     * transient discovery session, and return the fresh LAN route — or
+     * `null` if no matching LAN-capable peer surfaces within [timeoutMs].
+     *
+     * Used by the sender's LAN re-resolve-on-connect-failure retry
+     * (issue #203): the picker stops discovery the moment a peer is
+     * picked ([suspendPicker]), so the route's baked-in address can go
+     * stale (Wi-Fi roam / DHCP renew) with no live discovery to refresh
+     * it. This spins up a fresh [NearbyPeerDiscovery] browse, waits for
+     * the same peer to re-resolve, and tears the browse down again as
+     * soon as it matches (or the timeout elapses).
+     *
+     * Matching is by `endpointId` when both sides have one — it is
+     * stable across an IP change within a single advertising session —
+     * and falls back to `stableId` otherwise. The fresh LAN route is
+     * built through [SendBootstrapPlan.viableRoutes] so it honours the
+     * same connectability gates (parseable endpoint info, dialable
+     * primary address) the picker applies.
+     */
+    suspend fun reresolveLan(
+        peer: NearbyPeer,
+        timeoutMs: Long,
+    ): NearbyPeerRoute.Lan? {
+        logDiagnostic(
+            "reresolve: browsing for peer=${peer.stableId} " +
+                "endpointId=${peer.endpointId ?: "<none>"} timeoutMs=$timeoutMs",
+        )
+        val discovery = NearbyPeerDiscovery(context.applicationContext)
+        val match =
+            withTimeoutOrNull(timeoutMs) {
+                discovery.browse().firstOrNull { event ->
+                    event is NearbyPeerEvent.Resolved &&
+                        matchesReresolveTarget(event.peer, peer) &&
+                        freshLanRoute(event.peer) != null
+                } as? NearbyPeerEvent.Resolved
+            }
+        val route = match?.peer?.let(::freshLanRoute)
+        logDiagnostic(
+            "reresolve: result peer=${peer.stableId} found=${route != null}" +
+                (route?.let { " addr=${it.address.hostAddress}:${it.port}" } ?: ""),
+        )
+        return route
+    }
+
+    private fun freshLanRoute(peer: NearbyPeer): NearbyPeerRoute.Lan? =
+        SendBootstrapPlan
+            .viableRoutes(peer)
+            .filterIsInstance<NearbyPeerRoute.Lan>()
+            .firstOrNull()
+
+    private fun matchesReresolveTarget(
+        candidate: NearbyPeer,
+        target: NearbyPeer,
+    ): Boolean {
+        val targetEndpoint = target.endpointId
+        return if (targetEndpoint != null && candidate.endpointId != null) {
+            candidate.endpointId == targetEndpoint
+        } else {
+            candidate.stableId == target.stableId
+        }
+    }
+
+    fun peerLabel(peer: NearbyPeer): String = peer.displayName()
+
+    fun peerSubtitle(peer: NearbyPeer): String = planFor(peer).subtitle
+
+    fun peerFailureReason(peer: NearbyPeer): String = planFor(peer).failureReason ?: "no usable initial route"
+
+    /**
+     * The peer's advertised device type for the disc icon, falling back to
+     * UNKNOWN (smartphone glyph) when no endpoint info has been resolved
+     * yet (#277).
+     */
+    private fun peerDeviceType(peer: NearbyPeer): DeviceType = peer.endpointInfo?.deviceType ?: DeviceType.UNKNOWN
+
+    fun formatPeerSnapshot(
+        peer: NearbyPeer,
+        chosenRoute: NearbyPeerRoute? = null,
+    ): String {
+        val plan = planFor(peer)
+        val endpointId = peer.endpointId ?: "<none>"
+        val addressList =
+            peer.lanEndpoint
+                ?.addresses
+                ?.takeIf { it.isNotEmpty() }
+                ?.joinToString(",") { it.hostAddress ?: "<unresolved>" }
+                ?: "<none>"
+        val info = peer.endpointInfo
+        val infoSummary =
+            if (info == null) {
+                "<none>"
+            } else {
+                buildString {
+                    append("v=").append(info.version)
+                    append(" hidden=").append(info.hidden)
+                    append(" type=").append(info.deviceType.name)
+                    append(" name=")
+                    append(info.deviceName.toQuotedLogValue(nullToken = "<null>"))
+                    if (info.tlvRecords.isNotEmpty()) {
+                        append(" tlv=").append(
+                            info.tlvRecords.joinToString(",") { tlv ->
+                                val valueHex = tlv.value.joinToString("") { "%02x".format(it) }
+                                "${tlv.type}:$valueHex"
+                            },
+                        )
+                    }
+                }
+            }
+        val routeSummary =
+            when (chosenRoute) {
+                is NearbyPeerRoute.Lan -> "lan=${chosenRoute.address.hostAddress}:${chosenRoute.port}"
+                is NearbyPeerRoute.BluetoothClassic -> "bluetooth=${chosenRoute.macAddress}"
+                is NearbyPeerRoute.BleL2cap -> "ble-l2cap=${chosenRoute.macAddress}:${chosenRoute.psm}"
+                is NearbyPeerRoute.BleGatt -> "ble-gatt=${chosenRoute.macAddress}"
+                null -> plan.action.diagnosticLabel
+            }
+        val bleIdentitySummary =
+            formatBleIdentitySnapshot(peer)
+        return "peer=${peer.stableId} endpointId=$endpointId mediums=${peer.candidateMediums} " +
+            "addrs=[$addressList] route=$routeSummary displayName=${peer.displayName().toQuotedLogValue()} " +
+            "displayNameSource=${peer.displayNameSource()} bootstrap={${plan.diagnosticSummary()}}" +
+            "$bleIdentitySummary endpointInfo={$infoSummary}"
+    }
+
+    private fun formatBleIdentitySnapshot(peer: NearbyPeer): String {
+        val ble = peer.bleAdvertisement ?: return ""
+        val displayName = ble.displayName.toQuotedLogValue()
+        val displayNameSource = ble.displayNameSource ?: "<none>"
+        return " bleName=$displayName bleNameSource=$displayNameSource"
+    }
+
+    private fun startDiscovery() {
+        val discovery = NearbyPeerDiscovery(context.applicationContext)
+        logDiagnostic("discovery: start")
+        discoveryJob =
+            scope.launch {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    logDiagnostic("discovery: browse collector start")
+                    try {
+                        discovery.browse().collect { event -> onDiscoveryEvent(event) }
+                    } finally {
+                        logDiagnostic("discovery: browse collector stop")
+                    }
+                }
+            }
+    }
+
+    private fun onDiscoveryEvent(event: NearbyPeerEvent) {
+        val before = peers.size
+        when (event) {
+            is NearbyPeerEvent.Resolved -> {
+                upsertResolvedPeer(event.peer)
+                logDiagnostic(
+                    "discovery: resolved ${formatPeerSnapshot(event.peer)} " +
+                        "before=$before after=${peers.size} rows=${formatPeerRows()}",
+                )
+            }
+            is NearbyPeerEvent.Lost -> {
+                val removed = peers.removeAll { it.stableId == event.stableId }
+                logDiagnostic(
+                    "discovery: lost peer=${event.stableId} removed=$removed " +
+                        "before=$before after=${peers.size} rows=${formatPeerRows()}",
+                )
+            }
+        }
+        renderPeerList()
+        onPeersResolved(peers.toList())
+    }
+
+    private fun upsertResolvedPeer(incoming: NearbyPeer) {
+        if (!planFor(incoming).isConnectable) {
+            peers.removeAll { it.stableId == incoming.stableId }
+            return
+        }
+        val existingIndex = peers.indexOfFirst { it.stableId == incoming.stableId }
+        if (existingIndex >= 0) {
+            peers[existingIndex] = incoming
+        } else {
+            peers.add(incoming)
+        }
+        peers.sortWith(
+            compareByDescending<NearbyPeer> { planFor(it).isConnectable }
+                .thenBy { it.displayName().lowercase() },
+        )
+    }
+
+    private fun renderPeerList() {
+        val container = peerList
+
+        // Build the target row payloads up-front so we can compare
+        // against the last rendered snapshot before deciding whether
+        // the row container needs a rebuild.
+        //
+        // Each connectable peer is
+        // drawn as a circular [DeviceIconView] in a horizontal row, and
+        // peers are DEDUPED BY DISPLAY NAME — a receiver's BLE MAC
+        // rotates for privacy, so the same phone is otherwise seen under
+        // several stableIds and would show as several identical circles
+        // (the "two CPH2583" duplicate). We collapse to one chip per name
+        // and keep the first peer seen under that name as the chip's tap
+        // target; the snapshot picks up a later peer for the same name on
+        // the next render if the first is lost.
+        data class TargetRow(
+            val peer: NearbyPeer,
+            val title: String,
+            val subtitle: String,
+            val deviceType: DeviceType,
+        )
+        val seenNames = HashSet<String>()
+        val targetRows =
+            peers.mapNotNull { peer ->
+                val plan = planFor(peer)
+                if (!plan.isConnectable) return@mapNotNull null
+                val label = peerLabel(peer)
+                if (!seenNames.add(label)) return@mapNotNull null
+                TargetRow(peer, label, plan.subtitle, peerDeviceType(peer))
+            }
+        val targetSnapshot =
+            targetRows.map { row ->
+                RenderedRowSnapshot(row.peer.stableId, row.title, row.subtitle, row.deviceType)
+            }
+
+        // Subtitle ("Looking for nearby devices…" vs "Pick a device")
+        // is cheap and depends only on whether peers exist, so we
+        // refresh it unconditionally — re-applying the same string is
+        // a no-op at the TextView layer.
+        subtitle.setText(
+            when {
+                peers.isEmpty() -> R.string.send_subtitle_discovering
+                else -> R.string.send_subtitle_pick_peer
+            },
+        )
+
+        if (targetSnapshot == lastRenderedRowSnapshot) {
+            // No display-relevant change. Skip the row rebuild so a
+            // tap that just landed on an existing row keeps its click
+            // handler attached, instead of being silently dropped by a
+            // `removeAllViews()` + re-inflate cycle that would have run
+            // for every BLE RSSI tick. The empty-state TextView is
+            // still gated on the timer, not on peer-list churn, so we
+            // call its updater below regardless.
+            updateEmptyPeerHintVisibility()
+            return
+        }
+        lastRenderedRowSnapshot = targetSnapshot
+
+        container.removeAllViews()
+        for (target in targetRows) {
+            val stableId = target.peer.stableId
+            val icon = DeviceIconView(context, stableId, target.title, target.deviceType)
+            icon.isEnabled = true
+            icon.alpha = 1f
+            icon.setOnClickListener {
+                // Acknowledge the tap with the bounce, then route
+                // through the SAME selection path the old row click used
+                // (resolve a current peer by stableId so a rotated-MAC
+                // re-resolve picks the freshest route). Discovery /
+                // OutboundConnection wiring is unchanged.
+                icon.bounce()
+                peers.firstOrNull { it.stableId == stableId }?.let(onPeerSelected)
+            }
+            container.addView(icon)
+        }
+        // Empty-state visibility is gated on [EmptyPeerHintTimer] inside
+        // [updateEmptyPeerHintVisibility] so the "no devices nearby yet"
+        // helper text only surfaces after a short discovery window has
+        // elapsed. Pinning it true the instant the activity opens
+        // produced a confusing pair of conflicting messages — the
+        // subtitle would say "Looking for nearby devices…" while the
+        // body told the user there were none — even though no scan
+        // had actually had time to land its first result.
+        updateEmptyPeerHintVisibility()
+    }
+
+    private fun startEmptyPeerHintTimer() {
+        emptyPeerHintTimer.start(System.currentTimeMillis())
+        emptyPeerHintJob =
+            scope.launch {
+                delay(EmptyPeerHintTimer.DEFAULT_DELAY_MILLIS)
+                updateEmptyPeerHintVisibility()
+            }
+    }
+
+    private fun updateEmptyPeerHintVisibility() {
+        // Empty-state TextView ("no devices nearby yet…") is gated on
+        // the same delay window as the same-Wi-Fi hint card, but the
+        // dismiss latch does NOT apply — the body text is purely
+        // informational, not a banner the user can close. The result
+        // is a clean two-phase render: subtitle alone for the first
+        // discovery window, subtitle + helper text once the window
+        // expires with no peers found.
+        val now = System.currentTimeMillis()
+        val isEmpty = peers.isEmpty()
+        if (emptyPeerHintTimer.shouldShowEmptyState(now, isEmpty)) {
+            // Pick a contextual message based on the current radio state
+            // so the user understands why no peers appeared (#209).
+            val hintRes =
+                EmptyPeerRadioHint.stringResFor(
+                    bluetoothEnabled = radioStateReader.isBluetoothEnabled(),
+                    wifiConnected = radioStateReader.isWifiConnected(),
+                )
+            emptyState.setText(hintRes)
+            emptyState.visibility = View.VISIBLE
+        } else {
+            emptyState.visibility = View.GONE
+        }
+
+        // The "Same Wi-Fi network required" inline card is intentionally
+        // disabled in favour of the help link + bottom-sheet flow added
+        // alongside `send_help_link`. The two surfaces were colliding
+        // visually whenever the peer list stayed empty long enough to
+        // pop the inline card — the link below it overlapped the
+        // dismiss button on the card. The bottom sheet covers the same
+        // guidance (and adds the QR fallback section), so the inline
+        // card is kept in the layout for now but never raised.
+        networkHint.visibility = View.GONE
+    }
+
+    /**
+     * Re-evaluate the contextual empty-state text with the latest radio
+     * state. Called from [SendActivity.onResume] so that toggling
+     * Bluetooth or Wi-Fi in system settings and returning to the picker
+     * reflects immediately (#209).
+     *
+     * No-op once the picker is no longer actively discovering (after
+     * [suspendPicker] or [stop] null out [discoveryJob]): the empty-state
+     * hint is only meaningful while discovery is running, so resuming
+     * during an in-progress transfer must not re-surface it over the
+     * status panel.
+     */
+    fun onRadioStateChanged() {
+        updateBluetoothOffBanner()
+        if (discoveryJob == null) return
+        updateEmptyPeerHintVisibility()
+    }
+
+    /**
+     * Bluetooth-off banner (#290). Unlike the empty-state text this does
+     * NOT depend on the peer list: one same-Wi-Fi peer is enough to fill
+     * the grid, yet every stock receiver that relies on BLE for discovery
+     * or for its name is still missing, and the user had no way to tell.
+     */
+    private fun updateBluetoothOffBanner() {
+        val show = SendRadioBanner.shouldShowBluetoothOff(radioStateReader.isBluetoothEnabled())
+        if (show && bluetoothOffBanner.visibility != View.VISIBLE) {
+            logDiagnostic("radio: bluetooth off while picking; showing enable banner peers=${peers.size}")
+        }
+        bluetoothOffBanner.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun registerBluetoothStateReceiver() {
+        if (bluetoothStateReceiverRegistered) return
+        ContextCompat.registerReceiver(
+            context,
+            bluetoothStateReceiver,
+            IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        bluetoothStateReceiverRegistered = true
+    }
+
+    private fun unregisterBluetoothStateReceiver() {
+        if (!bluetoothStateReceiverRegistered) return
+        runCatching { context.unregisterReceiver(bluetoothStateReceiver) }
+        bluetoothStateReceiverRegistered = false
+    }
+
+    @Suppress("MissingPermission")
+    private fun startBleAdvertise() {
+        val advertiser = BleAdvertiser(context.applicationContext, senderEndpointId)
+        bleAdvertiser = advertiser
+        bleAdvertiseHandle = advertiser.start()
+        if (bleAdvertiseHandle == null) {
+            logDiagnostic("ble: pulse not started; falling back to mDNS-only discovery")
+            Log.i(BLE_TAG, "BLE pulse not started - falling back to mDNS-only discovery")
+        } else {
+            logDiagnostic("ble: pulse started")
+            Log.i(BLE_TAG, "BLE pulse started")
+        }
+    }
+
+    private fun formatPeerRows(): String =
+        if (peers.isEmpty()) {
+            "<empty>"
+        } else {
+            peers.joinToString(";") { peer ->
+                val plan = planFor(peer)
+                val route =
+                    when (val action = plan.action) {
+                        is SendBootstrapPlan.Action.Direct ->
+                            when (val route = action.route) {
+                                is NearbyPeerRoute.Lan -> "${route.address.hostAddress}:${route.port}"
+                                is NearbyPeerRoute.BluetoothClassic -> route.macAddress
+                                is NearbyPeerRoute.BleL2cap -> "${route.macAddress}:${route.psm}"
+                                is NearbyPeerRoute.BleGatt -> route.macAddress
+                            }
+                        SendBootstrapPlan.Action.Unavailable -> "<none>"
+                    }
+                "${peer.stableId}/${peer.endpointId ?: "<none>"}/$route/" +
+                    "${peer.displayName().toSanitizedLogValue()}(${peer.displayNameSource()})"
+            }
+        }
+
+    private fun planFor(peer: NearbyPeer): SendBootstrapPlan = SendBootstrapPlan.resolve(peer = peer)
+
+    private companion object {
+        private const val BLE_TAG: String = "BadaDiscovery"
+    }
+}
+
+internal fun String?.toQuotedLogValue(nullToken: String = "<none>"): String =
+    this
+        ?.toSanitizedLogValue()
+        ?.let { "\"$it\"" }
+        ?: nullToken
+
+internal fun String.toSanitizedLogValue(): String =
+    buildString(length) {
+        this@toSanitizedLogValue.forEach { ch ->
+            when (ch) {
+                '\\' -> append("\\\\")
+                '"' -> append("\\\"")
+                '\n' -> append("\\n")
+                '\r' -> append("\\r")
+                '\t' -> append("\\t")
+                else -> append(ch)
+            }
+        }
+    }
