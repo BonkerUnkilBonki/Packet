@@ -34,8 +34,8 @@ internal object UpdateChecker {
      * `v` — see CLAUDE.md "Release process".
      */
     private const val RELEASES_LATEST_URL =
-        "https://api.github.com/repos/switchtomonk/packet-android/releases/latest"
-    private const val USER_AGENT = "Packet-Android-UpdateChecker"
+        "https://api.github.com/repos/kyujin-cho/Bada/releases/latest"
+    private const val USER_AGENT = "Bada-Android-UpdateChecker"
     private const val CONNECT_TIMEOUT_MS = 10_000
     private const val READ_TIMEOUT_MS = 10_000
 

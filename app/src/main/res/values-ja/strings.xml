@@ -50,24 +50,24 @@
     <string name="update_button_update">アップデート</string>
     <!-- 自動アップデート確認: 通知 + ダウンロード/インストールのフロー。 -->
     <string name="update_notification_channel_name">アプリのアップデート</string>
-    <string name="update_notification_channel_desc">GitHub に新しいバージョンの Packet があるときに通知します。</string>
-    <string name="update_notification_title">Packet のアップデートがあります</string>
+    <string name="update_notification_channel_desc">GitHub に新しいバージョンの Bada があるときに通知します。</string>
+    <string name="update_notification_title">Bada のアップデートがあります</string>
     <string name="update_notification_text">バージョン %1$s をインストールできます</string>
     <string name="update_notification_action_github">GitHub で表示</string>
     <string name="update_notification_action_download">ダウンロードしてインストール</string>
     <string name="update_downloading_title">アップデートをダウンロードしています…</string>
-    <string name="update_downloading_text">Packet %1$s</string>
+    <string name="update_downloading_text">Bada %1$s</string>
     <string name="update_download_failed_title">アップデートのダウンロードに失敗しました</string>
     <string name="update_download_failed_text">アップデートをダウンロードできませんでした。通知をタップして再試行するか、GitHub を開いてください。</string>
-    <string name="update_install_need_unknown_sources">Packet にアプリのインストールを許可してから、もう一度ダウンロードをタップしてください。</string>
+    <string name="update_install_need_unknown_sources">Bada にアプリのインストールを許可してから、もう一度ダウンロードをタップしてください。</string>
     <string name="update_install_started">アップデートをダウンロードしています…</string>
-    <string name="update_install_success">Packet をアップデートしました</string>
+    <string name="update_install_success">Bada をアップデートしました</string>
     <string name="update_install_failed">アップデートをインストールできませんでした</string>
-    <string name="update_confirm_notification_title">Packet アップデートの確認</string>
+    <string name="update_confirm_notification_title">Bada アップデートの確認</string>
     <string name="update_confirm_notification_text">タップしてアップデートのインストールを完了してください。</string>
     <string name="update_open_release_failed">リリースページを開けませんでした。</string>
     <string name="settings_auto_update_title">自動アップデート確認</string>
-    <string name="settings_auto_update_subtitle">6 時間ごとに GitHub で新しい Packet リリースを確認し、新しいバージョンがあれば通知します。</string>
+    <string name="settings_auto_update_subtitle">6 時間ごとに GitHub で新しい Bada リリースを確認し、新しいバージョンがあれば通知します。</string>
 
     <!-- `credit_section_developer`, `credit_section_polisher`,
          `credit_section_qa`, `credit_section_thanks` are intentionally
@@ -109,7 +109,7 @@
 
     <!-- Shake-to-report bug toggle. -->
     <string name="main_bug_report_title">振ってバグを報告</string>
-    <string name="main_bug_report_subtitle">有効にすると、Packet を開いた状態で端末を振ったときに、最近の診断情報・端末の状態・スクリーンショットを zip にまとめて自分で保存できます。自動的にアップロードされることはありません。</string>
+    <string name="main_bug_report_subtitle">有効にすると、Bada を開いた状態で端末を振ったときに、最近の診断情報・端末の状態・スクリーンショットを zip にまとめて自分で保存できます。自動的にアップロードされることはありません。</string>
     <string name="main_keep_screen_on_title">転送中は画面をオンのままにする</string>
     <string name="main_keep_screen_on_subtitle">ファイルの送受信中に画面が消えないようにして、長い転送の進行状況と安定性を保ちます。</string>
     <string name="main_transfer_expert_title">転送の詳細情報</string>
@@ -190,7 +190,7 @@
 
     <!-- Same-Wi-Fi-network onboarding card (#85). -->
     <string name="onboarding_network_card_title">近くの端末を見つける条件</string>
-    <string name="onboarding_network_card_body">共有 Wi-Fi は今も Quick Share の基本経路で、特に受信時に使われます。近くの標準 Quick Share 端末に送信するとき、両端末が同じ LAN 上にない場合は、Packet は Bluetooth 補助によるブートストラップも使えます。この経路のために Bluetooth はオンのままにしてください。</string>
+    <string name="onboarding_network_card_body">共有 Wi-Fi は今も Quick Share の基本経路で、特に受信時に使われます。近くの標準 Quick Share 端末に送信するとき、両端末が同じ LAN 上にない場合は、Bada は Bluetooth 補助によるブートストラップも使えます。この経路のために Bluetooth はオンのままにしてください。</string>
     <string name="onboarding_network_card_dismiss">OK</string>
 
     <!-- NEARBY_WIFI_DEVICES (API 33+). -->
@@ -215,7 +215,7 @@
 
     <!-- ACCESS_FINE_LOCATION (legacy nearby-device discovery). -->
     <string name="permission_legacy_nearby_location_title">近くの端末の位置情報アクセス</string>
-    <string name="permission_legacy_nearby_location_rationale">Android 11 以前では、Bluetooth Low Energy のスキャン結果は位置情報権限を通じて渡されます。Packet はこの権限を近くの Quick Share 端末を見つけるためだけに使い、あなたの物理的な位置は使いません。</string>
+    <string name="permission_legacy_nearby_location_rationale">Android 11 以前では、Bluetooth Low Energy のスキャン結果は位置情報権限を通じて渡されます。Bada はこの権限を近くの Quick Share 端末を見つけるためだけに使い、あなたの物理的な位置は使いません。</string>
 
     <!-- Permission status labels. -->
     <string name="permission_status_granted">許可済み</string>
@@ -238,7 +238,7 @@
     <string name="send_help_link">端末が見つかりませんか？</string>
     <string name="send_help_sheet_title">端末が見つかりませんか？</string>
     <string name="send_help_sheet_visibility_title">受信側のモードを確認</string>
-    <string name="send_help_sheet_visibility_body">受信側の端末で、切り替えが「受信の準備完了」になっているか確認してください。このモードでは、近くにいる誰でもファイルを共有できます。すでにこのモードなのにここに表示されない場合は、両方の端末で Packet を完全に終了してから開き直してみてください。</string>
+    <string name="send_help_sheet_visibility_body">受信側の端末で、切り替えが「受信の準備完了」になっているか確認してください。このモードでは、近くにいる誰でもファイルを共有できます。すでにこのモードなのにここに表示されない場合は、両方の端末で Bada を完全に終了してから開き直してみてください。</string>
     <string name="send_help_sheet_qr_title">または QR コードで共有</string>
     <string name="send_help_sheet_qr_body">それでも受信側が表示されない場合は、このカードの右上にある QR コードボタンをタップしてください。受信側にコードをスキャンしてもらうか、リンクを開いてもらうと転送を開始できます。</string>
     <string name="send_help_sheet_compat_title">対応端末の確認</string>
@@ -285,7 +285,7 @@
 
     <!-- Shake-to-report bug-report flow (#162). -->
     <string name="bug_report_confirm_title">バグを報告しますか？</string>
-    <string name="bug_report_confirm_body">Packet は最近のアプリの診断情報・端末の状態・スクリーンショットを zip にまとめ、保存先を選ぶまで端末内にのみ保管します。</string>
+    <string name="bug_report_confirm_body">Bada は最近のアプリの診断情報・端末の状態・スクリーンショットを zip にまとめ、保存先を選ぶまで端末内にのみ保管します。</string>
     <string name="bug_report_confirm_yes">はい</string>
     <string name="bug_report_confirm_no">いいえ</string>
     <string name="bug_report_include_bssid_label">識別性の高い詳細情報を含める（Wi-Fi BSSID と周辺デバイスの診断情報）</string>
@@ -344,20 +344,20 @@
     <string name="consent_state_close">閉じる</string>
     <string name="consent_state_view_image_unavailable">この画像を開けるアプリがありません。</string>
 
-    <!-- Quick Settings tile. `qs_tile_label` ("Packet") is a proper noun
+    <!-- Quick Settings tile. `qs_tile_label` ("Bada") is a proper noun
          and intentionally NOT overridden here. -->
     <string name="qs_tile_subtitle_on">検出可能</string>
     <string name="qs_tile_subtitle_off">オフ</string>
-    <string name="qs_tile_content_desc_on">近くの端末から Packet を検出できます</string>
-    <string name="qs_tile_content_desc_off">Packet を検出できません</string>
+    <string name="qs_tile_content_desc_on">近くの端末から Bada を検出できます</string>
+    <string name="qs_tile_content_desc_off">Bada を検出できません</string>
 
     <!-- Settings tab "全画面の受信通知" row + first-launch dialog (Android 14+). -->
     <string name="settings_fsi_title">全画面の受信通知</string>
-    <string name="settings_fsi_subtitle">全画面通知を許可すると、Packet がバックグラウンドにあるときに受信要求が届いても、他のアプリの上やロック画面に PIN がすぐ表示されます。許可しなくても、通知をタップすれば PIN を確認できます。</string>
+    <string name="settings_fsi_subtitle">全画面通知を許可すると、Bada がバックグラウンドにあるときに受信要求が届いても、他のアプリの上やロック画面に PIN がすぐ表示されます。許可しなくても、通知をタップすれば PIN を確認できます。</string>
     <string name="settings_fsi_status_granted">現在: 全画面通知が許可されています</string>
     <string name="settings_fsi_status_not_granted">現在: 許可されていません。PIN 要求は通知として届きます</string>
     <string name="settings_fsi_open">通知設定を開く</string>
-    <string name="fsi_dialog_body">Packet がバックグラウンドにあるときに受信要求が届くと、PIN 要求を画面の上に表示するために全画面通知の権限が必要です。許可しない場合、要求は通常の通知として届き、タップして開けます。設定を開いて許可するか、後で設定タブから対応するにはスキップしてください。</string>
+    <string name="fsi_dialog_body">Bada がバックグラウンドにあるときに受信要求が届くと、PIN 要求を画面の上に表示するために全画面通知の権限が必要です。許可しない場合、要求は通常の通知として届き、タップして開けます。設定を開いて許可するか、後で設定タブから対応するにはスキップしてください。</string>
     <string name="fsi_dialog_skip_toast">設定から変更できます。</string>
 
     <!-- Locale parity backfill: Name Card (#251), receive-waiting sheet,
@@ -391,17 +391,17 @@
     <string name="send_status_tap_waiting_wifi">Wi‑Fi を待っています…</string>
     <string name="consent_state_waiting_title">受信の準備ができました</string>
     <string name="consent_state_waiting_body">近くの端末からの共有を待っています…</string>
-    <string name="nfc_tap_hce_service_description">Packet Quick Share タップ共有</string>
-    <string name="nfc_hce_service_description">Packet NFC リンク</string>
-    <string name="nfc_namecard_hce_service_description">Packet ネームカード</string>
-    <string name="settings_master_on">Packet はオン</string>
-    <string name="settings_master_off">Packet はオフ</string>
-    <string name="main_master_off_caption">Packet はオフです。ファイルを受信するには設定でオンにしてください。</string>
+    <string name="nfc_tap_hce_service_description">Bada Quick Share タップ共有</string>
+    <string name="nfc_hce_service_description">Bada NFC リンク</string>
+    <string name="nfc_namecard_hce_service_description">Bada ネームカード</string>
+    <string name="settings_master_on">Bada はオン</string>
+    <string name="settings_master_off">Bada はオフ</string>
+    <string name="main_master_off_caption">Bada はオフです。ファイルを受信するには設定でオンにしてください。</string>
     <string name="settings_name_card_row_title">ネームカード</string>
     <string name="settings_name_card_row_subtitle">端末同士を重ねて共有する連絡先カードを設定します</string>
     <string name="name_card_activity_label">ネームカード</string>
     <string name="name_card_setup_title">マイネームカード</string>
-    <string name="name_card_setup_subtitle">端末同士を重ねると相手の Packet 端末と共有されます。空欄の場合は端末自体の名前と番号が使われます。</string>
+    <string name="name_card_setup_subtitle">端末同士を重ねると相手の Bada 端末と共有されます。空欄の場合は端末自体の名前と番号が使われます。</string>
     <string name="name_card_enable_title">端末を重ねたときに自分のカードを共有</string>
     <string name="name_card_field_name">名前</string>
     <string name="name_card_field_phone">電話番号</string>

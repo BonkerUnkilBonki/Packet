@@ -1,15 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  MainActivity layout — One UI Quick Share shell (fork).
+
+  The upstream layout was a flat toolbar / content / nav-bar column. This rebuilds it as the
+  Quick Share presentation: a soft pale-blue gradient page with a floating white pill header at
+  the top and a floating white pill navigation bar at the bottom, both inset from the edges.
+
+  Every view id from upstream is preserved (main_always_visible_pulse, main_toolbar,
+  main_fragment_container, main_bottom_nav) so MainActivity's view binding and its
+  setSupportActionBar / overflow-menu wiring keep working unchanged.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/qs_bg_gradient">
+    android:layout_height="match_parent">
 
+    <!-- Ambient Quick Share wash. -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_qs_page_gradient" />
+
+    <!-- Activity-level ambient pulse layer (always-visible mode). -->
     <dev.bluehouse.bada.ui.VisibilityPulseView
         android:id="@+id/main_always_visible_pulse"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,18 +33,24 @@
         android:fitsSystemWindows="true"
         android:orientation="vertical">
 
+        <!-- Floating header pill: title + overflow menu. -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/main_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@android:color/transparent"
-            android:paddingEnd="12dp"
+            android:layout_height="@dimen/app_toolbar_height"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_qs_header_pill"
+            android:paddingStart="12dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="@dimen/app_toolbar_padding_top"
             android:theme="@style/ThemeOverlay.Bada.ToolbarNoRipple"
             app:popupTheme="@style/ThemeOverlay.Bada.PopupMenu"
             app:title="@string/app_name"
             app:titleCentered="false"
-            app:titleTextAppearance="@style/TextAppearance.Bada.ToolbarTitle"
-            app:titleTextColor="@color/qs_text_primary" />
+            app:titleTextAppearance="@style/TextAppearance.Bada.QsTitle"
+            app:titleTextColor="?android:attr/textColorPrimary" />
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/main_fragment_container"
@@ -36,11 +58,15 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <!-- Floating navigation pill: Receive / Send tabs. -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/main_bottom_nav"
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:background="@android:color/transparent"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/nav_pill_background"
             app:elevation="0dp"
             app:itemBackground="@android:color/transparent"
             app:itemIconTint="@color/bottom_nav_item_color"

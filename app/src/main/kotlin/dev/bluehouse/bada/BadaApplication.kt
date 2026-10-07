@@ -7,7 +7,6 @@ package dev.bluehouse.bada
 
 import android.app.Application
 import android.content.Context
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -44,8 +43,6 @@ import java.util.concurrent.TimeUnit
 class BadaApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // Packet is designed dark (One UI Quick Share).
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         ReceiverForegroundService.openAppTarget = MainActivity::class.java
         ReceiverForegroundService.consentTrampolineTarget = ConsentTrampolineActivity::class.java
         // Must match where BugReportCollector reads the log back from

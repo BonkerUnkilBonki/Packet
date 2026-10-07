@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name" translatable="false">Packet</string>
+    <string name="app_name" translatable="false">Bada</string>
 
     <!-- Bottom-navigation tab labels for MainActivity. The send/receive
          tab is the default destination on cold start; settings holds the
@@ -31,24 +31,24 @@
     <string name="update_button_update">Update</string>
     <!-- Automatic update check: notification + download/install flow. -->
     <string name="update_notification_channel_name">App updates</string>
-    <string name="update_notification_channel_desc">Notifies you when a newer version of Packet is available on GitHub.</string>
-    <string name="update_notification_title">Packet update available</string>
+    <string name="update_notification_channel_desc">Notifies you when a newer version of Bada is available on GitHub.</string>
+    <string name="update_notification_title">Bada update available</string>
     <string name="update_notification_text">Version %1$s is ready to install</string>
     <string name="update_notification_action_github">View on GitHub</string>
     <string name="update_notification_action_download">Download &amp; install</string>
     <string name="update_downloading_title">Downloading update…</string>
-    <string name="update_downloading_text" translatable="false">Packet %1$s</string>
+    <string name="update_downloading_text" translatable="false">Bada %1$s</string>
     <string name="update_download_failed_title">Update download failed</string>
     <string name="update_download_failed_text">Couldn\'t download the update. Tap the notification to try again or open GitHub.</string>
-    <string name="update_install_need_unknown_sources">Allow Packet to install apps, then tap Download again.</string>
+    <string name="update_install_need_unknown_sources">Allow Bada to install apps, then tap Download again.</string>
     <string name="update_install_started">Downloading update…</string>
-    <string name="update_install_success">Packet updated</string>
+    <string name="update_install_success">Bada updated</string>
     <string name="update_install_failed">Couldn\'t install the update</string>
-    <string name="update_confirm_notification_title">Confirm Packet update</string>
+    <string name="update_confirm_notification_title">Confirm Bada update</string>
     <string name="update_confirm_notification_text">Tap to review and finish installing the update.</string>
     <string name="update_open_release_failed">Couldn\'t open the release page.</string>
     <string name="settings_auto_update_title">Automatic update check</string>
-    <string name="settings_auto_update_subtitle">Every 6 hours, check GitHub for a newer Packet release and show a notification when one is available.</string>
+    <string name="settings_auto_update_subtitle">Every 6 hours, check GitHub for a newer Bada release and show a notification when one is available.</string>
     <string name="credit_placeholder_text" translatable="false">credit</string>
 
     <!--
@@ -142,7 +142,7 @@
     <string name="main_always_visible_caption_on">Anyone nearby can share files with me.</string>
     <string name="main_always_visible_caption_off">Active only while a nearby device is scanning over Bluetooth.</string>
     <string name="main_bug_report_title">Shake to report a bug</string>
-    <string name="main_bug_report_subtitle">When enabled, shaking the phone while Packet is open offers to package recent diagnostics, device state, and a screenshot into a zip that you save yourself. Nothing is uploaded automatically.</string>
+    <string name="main_bug_report_subtitle">When enabled, shaking the phone while Bada is open offers to package recent diagnostics, device state, and a screenshot into a zip that you save yourself. Nothing is uploaded automatically.</string>
     <string name="settings_nfc_diagnostics_title">Show NFC tap diagnostics</string>
     <string name="settings_nfc_diagnostics_subtitle">When enabled, each NFC tap-to-share shows on-screen messages (read outcome, wake, which device it connects to, or why it could not). Turn this off for a clean tap once everything works. The detailed log is always kept for bug reports.</string>
     <string name="main_keep_screen_on_title">Keep screen on during transfers</string>
@@ -207,7 +207,7 @@
          OEM family; the helper takes the user to the right Settings
          page. -->
     <!-- #145 legacy package migration banner. Shown when the
-         launcher detects a coresident pre-Packet install. The legacy build registers a
+         launcher detects a coresident pre-Bada install. The legacy build registers a
          duplicate 0xFEF3 GATT advertisement service that prevents stock
          Quick Share senders from completing the BLE bootstrap, so the
          banner is non-dismissible: only uninstalling the old package
@@ -249,16 +249,16 @@
          dialog (Android 14+). On API 34+ USE_FULL_SCREEN_INTENT is a
          special access that is auto-denied; without it the incoming
          consent prompt (with the PIN) cannot pop full-screen over other
-         apps / the lock screen while Packet is in the background and
+         apps / the lock screen while Bada is in the background and
          degrades to a heads-up notification. The row and dialog route
          the user to the system page that grants it. The row is hidden
          entirely below API 34, where the permission is install-time. -->
     <string name="settings_fsi_title">Full-screen transfer alerts</string>
-    <string name="settings_fsi_subtitle">Allow full-screen notifications so an incoming transfer can show its PIN over other apps and on the lock screen when Packet is in the background. Without it, you still get a notification you can tap to see the PIN.</string>
+    <string name="settings_fsi_subtitle">Allow full-screen notifications so an incoming transfer can show its PIN over other apps and on the lock screen when Bada is in the background. Without it, you still get a notification you can tap to see the PIN.</string>
     <string name="settings_fsi_status_granted">Currently: full-screen alerts allowed</string>
     <string name="settings_fsi_status_not_granted">Currently: not allowed — the PIN prompt arrives as a notification instead</string>
     <string name="settings_fsi_open">Open notification settings</string>
-    <string name="fsi_dialog_body">When a transfer arrives while Packet is in the background, Android needs the full-screen notification permission to pop the PIN prompt over your screen. Without it, the prompt arrives as a regular notification you tap to open. Open settings to allow it, or Skip to handle it later from the Settings tab.</string>
+    <string name="fsi_dialog_body">When a transfer arrives while Bada is in the background, Android needs the full-screen notification permission to pop the PIN prompt over your screen. Without it, the prompt arrives as a regular notification you tap to open. Open settings to allow it, or Skip to handle it later from the Settings tab.</string>
     <string name="fsi_dialog_skip_toast">You can change this from Settings.</string>
 
     <!-- NFC tap to share (dedicated setting; not tied to the visible toggle). -->
@@ -303,7 +303,7 @@
          permission rows so the user understands the Phase 1 networking
          requirement before they land in the share flow. -->
     <string name="onboarding_network_card_title">Nearby discovery requirements</string>
-    <string name="onboarding_network_card_body">Shared Wi-Fi is still the baseline Quick Share path, especially when receiving. When sending to a nearby stock Quick Share peer, Packet can also use Bluetooth-assisted bootstrap if the devices are off-LAN. Keep Bluetooth on for that path.</string>
+    <string name="onboarding_network_card_body">Shared Wi-Fi is still the baseline Quick Share path, especially when receiving. When sending to a nearby stock Quick Share peer, Bada can also use Bluetooth-assisted bootstrap if the devices are off-LAN. Keep Bluetooth on for that path.</string>
     <string name="onboarding_network_card_dismiss">OK</string>
 
     <!-- NEARBY_WIFI_DEVICES (API 33+). -->
@@ -328,7 +328,7 @@
 
     <!-- ACCESS_FINE_LOCATION (API 24-30, legacy nearby-device discovery). -->
     <string name="permission_legacy_nearby_location_title">Nearby device location access</string>
-    <string name="permission_legacy_nearby_location_rationale">Android 11 and lower route Bluetooth Low Energy scan results through the location permission. Packet uses it only to discover nearby Quick Share devices; it does not use your physical location.</string>
+    <string name="permission_legacy_nearby_location_rationale">Android 11 and lower route Bluetooth Low Energy scan results through the location permission. Bada uses it only to discover nearby Quick Share devices; it does not use your physical location.</string>
 
     <!-- Permission status labels. -->
     <string name="permission_status_granted">Granted</string>
@@ -371,13 +371,13 @@
          scan list. -->
     <string name="send_help_sheet_title">Can\'t find the device?</string>
     <string name="send_help_sheet_visibility_title">Check the receiver\'s mode</string>
-    <string name="send_help_sheet_visibility_body">On the receiving device, make sure the toggle reads "Ready to receive". In that mode, anyone nearby can share files with it. If it\'s already in that mode but still doesn\'t appear here, try fully closing Packet on both devices and reopening it.</string>
+    <string name="send_help_sheet_visibility_body">On the receiving device, make sure the toggle reads "Ready to receive". In that mode, anyone nearby can share files with it. If it\'s already in that mode but still doesn\'t appear here, try fully closing Bada on both devices and reopening it.</string>
     <string name="send_help_sheet_qr_title">Or share via QR code</string>
     <string name="send_help_sheet_qr_body">If the receiver still does not appear, tap the QR code button at the top right of this card. Have the receiver scan the code or open the link to start the transfer.</string>
     <string name="send_help_sheet_tap_title">Sharing with a tap</string>
     <string name="send_help_sheet_tap_body">To share with a tap, hold the two phones back-to-back. The other phone only needs its screen on — it does not have to open the app. Only one phone taps to send: if the other phone is also on its own send screen, neither can receive the tap, so let it sit on its home screen instead.</string>
     <string name="send_help_sheet_compat_title">Check device compatibility</string>
-    <string name="send_help_sheet_compat_body">Packet is currently an experimental project. On some devices a peer may be discoverable but unable to receive files, and some devices may not be discoverable at all. We plan to widen device support in future updates.</string>
+    <string name="send_help_sheet_compat_body">Bada is currently an experimental project. On some devices a peer may be discoverable but unable to receive files, and some devices may not be discoverable at all. We plan to widen device support in future updates.</string>
     <string name="send_help_sheet_close">Got it</string>
 
     <string name="send_show_qr">Show QR</string>
@@ -445,7 +445,7 @@
 
     <!-- Shake-to-report bug-report flow (#162). -->
     <string name="bug_report_confirm_title">Trying to report a bug?</string>
-    <string name="bug_report_confirm_body">Packet will collect recent app diagnostics, device state, and a screenshot into a zip that stays on this device until you choose where to save it.</string>
+    <string name="bug_report_confirm_body">Bada will collect recent app diagnostics, device state, and a screenshot into a zip that stays on this device until you choose where to save it.</string>
     <string name="bug_report_confirm_yes">Yes</string>
     <string name="bug_report_confirm_no">No</string>
     <string name="bug_report_include_bssid_label">Include more-identifying details (Wi-Fi BSSID and nearby-device diagnostics)</string>
@@ -568,7 +568,7 @@
     <string name="transfer_progress_percent" translatable="false">%1$d%%</string>
 
     <!--
-      Quick Settings tile (PacketQuickShareTileService). Toggles the
+      Quick Settings tile (BadaQuickShareTileService). Toggles the
       receiver's "always visible" override from the system Quick Settings
       panel. `qs_tile_label` is also the tile's manifest android:label
       (shown in the Quick Settings edit tray) — keep it under ~18 chars
@@ -576,34 +576,34 @@
       under the tile label on API 29+; the content descriptions back
       TalkBack on every API level.
     -->
-    <string name="qs_tile_label" translatable="false">Packet</string>
+    <string name="qs_tile_label" translatable="false">Bada</string>
     <string name="qs_tile_subtitle_on">Discoverable</string>
     <string name="qs_tile_subtitle_off">Off</string>
-    <string name="qs_tile_content_desc_on">Packet is discoverable to nearby devices</string>
-    <string name="qs_tile_content_desc_off">Packet is not discoverable</string>
+    <string name="qs_tile_content_desc_on">Bada is discoverable to nearby devices</string>
+    <string name="qs_tile_content_desc_off">Bada is not discoverable</string>
 
     <!-- NFC tap-to-share HCE service description, shown in the system NFC /
          card-emulation settings list of registered apps. -->
-    <string name="nfc_tap_hce_service_description">Packet Quick Share tap-to-share</string>
+    <string name="nfc_tap_hce_service_description">Bada Quick Share tap-to-share</string>
     <!-- HCE service description shown in system NFC settings. The Type-4 NDEF
          service broadcasts the current pairing link to a tapped iPhone so it
          opens that link in Safari. -->
-    <string name="nfc_hce_service_description">Packet NFC link</string>
+    <string name="nfc_hce_service_description">Bada NFC link</string>
 
     <!-- ===== Name Card (tap-to-share contacts) ===== -->
     <!-- HCE service description shown in system NFC settings for the Name Card
          tap (proprietary AID F0534443415244). -->
-    <string name="nfc_namecard_hce_service_description">Packet Name Card</string>
+    <string name="nfc_namecard_hce_service_description">Bada Name Card</string>
     <!-- Settings row that opens the Name Card setup screen. -->
-    <string name="settings_master_on">Packet is on</string>
-    <string name="settings_master_off">Packet is off</string>
-    <string name="main_master_off_caption">Packet is off. Turn it on in Settings to receive files.</string>
+    <string name="settings_master_on">Bada is on</string>
+    <string name="settings_master_off">Bada is off</string>
+    <string name="main_master_off_caption">Bada is off. Turn it on in Settings to receive files.</string>
     <string name="settings_name_card_row_title">Name Card</string>
     <string name="settings_name_card_row_subtitle">Set up the contact card you share by tapping phones</string>
     <!-- NameCardSetupActivity (the setup page) -->
     <string name="name_card_activity_label">Name Card</string>
     <string name="name_card_setup_title">My Name Card</string>
-    <string name="name_card_setup_subtitle">Shared with another Packet phone when you tap them together. Leave blank to fall back to your phone’s own name and number.</string>
+    <string name="name_card_setup_subtitle">Shared with another Bada phone when you tap them together. Leave blank to fall back to your phone’s own name and number.</string>
     <string name="name_card_enable_title">Share my card when phones tap</string>
     <string name="name_card_field_name">Name</string>
     <string name="name_card_field_phone">Phone</string>
@@ -637,48 +637,4 @@
     <string name="name_card_consent_channel">Name Card consent</string>
     <string name="name_card_exchange_channel">Name Card exchange</string>
     <string name="name_card_exchange_notification">Sharing your name card…</string>
-
-    <!-- One UI Quick Share redesign (Packet) -->
-    <string name="qs_device_this">This device</string>
-    <string name="qs_you_appear_as">You\u2019ll appear as</string>
-    <string name="qs_receive_title">Ready to receive\u2026</string>
-    <string name="qs_receive_subtitle">Anyone nearby can share with you while you\u2019re on this screen.</string>
-    <string name="qs_send_title">Choose what to share</string>
-    <string name="qs_mode_receive">Receive</string>
-    <string name="qs_mode_send">Send</string>
-    <string name="qs_go_to_settings">Go to settings to choose who can always share with you, even when you\u2019re not on this screen.</string>
-    <string name="qs_panel_title">Quick Share</string>
-    <string name="qs_panel_close">Close</string>
-    <string name="qs_panel_select_files">Select files</string>
-    <string name="qs_panel_send_folder">Send folder</string>
-    <string name="settings_panel_scope_title">Only run while the panel is open</string>
-    <string name="settings_panel_scope_subtitle">Keep Packet out of the background except while the Quick Share panel is open. Closing the panel stops receiving and closes the panel.</string>
-    <string name="qs_devices_nearby">Share to devices nearby</string>
-    <string name="qs_looking_devices">Looking for nearby devices\u2026</string>
-    <string name="qs_selected_files">Selected files</string>
-    <plurals name="qs_file_count">
-        <item quantity="one">%d file</item>
-        <item quantity="other">%d files</item>
-    </plurals>
-    <string name="qs_tx_preparing">Preparing\u2026</string>
-    <string name="qs_tx_connecting">Connecting\u2026</string>
-    <string name="qs_tx_accept">Waiting for the other device\u2026</string>
-    <string name="qs_tx_sending">Sending\u2026</string>
-    <string name="qs_tx_done">Sent</string>
-    <string name="qs_tx_failed">Transfer failed</string>
-    <string name="qs_tx_cancelled">Cancelled</string>
-    <string name="qs_cancel">Cancel</string>
-    <string name="qs_tx_reach_failed">Couldn\u2019t reach that device.</string>
-    <string name="qs_more_files">+%d more files</string>
-    <string name="settings_theme_title">Theme</string>
-    <string name="settings_theme_subtitle">Choose Light, Dark, or Pitch black (pure AMOLED black).</string>
-    <string name="settings_theme_light">Light</string>
-    <string name="settings_theme_dark">Dark</string>
-    <string name="settings_theme_black">Pitch black</string>
-    <string name="settings_accent_title">Accent colour</string>
-    <string name="settings_accent_subtitle">Use a custom hex colour for buttons and highlights (e.g. #2E7DF6).</string>
-    <string name="settings_accent_hint">#2E7DF6</string>
-    <string name="settings_accent_apply">Apply</string>
-    <string name="settings_accent_reset">Reset</string>
-    <string name="settings_accent_invalid">Enter a hex colour like #2E7DF6</string>
 </resources>

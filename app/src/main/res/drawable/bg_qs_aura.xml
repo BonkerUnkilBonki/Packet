@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Soft radial Quick Share glow that sits behind the receive prompt. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:centerX="0.5"
+        android:centerY="0.35"
+        android:endColor="@color/qs_aura_outer"
+        android:gradientRadius="260dp"
+        android:startColor="@color/qs_aura_inner"
+        android:type="radial" />
+</shape>

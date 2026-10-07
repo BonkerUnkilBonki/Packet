@@ -68,7 +68,7 @@ android {
             .toInt()
 
     defaultConfig {
-        applicationId = "com.packet.quickshare"
+        applicationId = "dev.bluehouse.bada"
         minSdk =
             libs.versions.minSdk
                 .get()
@@ -78,7 +78,7 @@ android {
                 .get()
                 .toInt()
         versionCode = 2026091401
-        versionName = "20260914.01-packet"
+        versionName = "20260914.01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quick Share page backdrop: soft pale-blue wash, top to bottom. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@color/qs_gradient_top"
+        android:endColor="@color/qs_gradient_bottom"
+        android:type="linear" />
+</shape>

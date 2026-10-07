@@ -35,7 +35,6 @@ import dev.bluehouse.bada.consent.FullScreenIntentPermission
 import dev.bluehouse.bada.consent.FullScreenIntentPreferences
 import dev.bluehouse.bada.onboarding.PermissionRequirements
 import dev.bluehouse.bada.onboarding.PermissionsOnboardingActivity
-import dev.bluehouse.bada.panel.PanelScopedBackgroundPreferences
 import dev.bluehouse.bada.service.receiver.ReceiverForegroundService
 import dev.bluehouse.bada.service.receiver.ReceiverMasterSwitch
 import dev.bluehouse.bada.ui.CreditActivity
@@ -141,16 +140,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (dev.bluehouse.bada.theme.ThemePreferences.isPitchBlack(this)) {
-            theme.applyStyle(R.style.Theme_Packet_PitchBlack, true)
-        }
         setContentView(R.layout.activity_main)
-        dev.bluehouse.bada.theme.AccentApplier.apply(
-            findViewById(android.R.id.content),
-            dev.bluehouse.bada.theme.AccentApplier.parse(
-                dev.bluehouse.bada.theme.ThemePreferences.from(this).customAccent(),
-            ),
-        )
 
         // Install the shake-to-report bug-flow support (#166). Has to
         // happen before any fragment transaction so the flow's
@@ -237,9 +227,8 @@ class MainActivity : AppCompatActivity() {
         // content sits behind it. Portrait inflates a plain
         // BottomNavigationView, so the cast is null there and this is a
         // no-op. The activity content frame is the hierarchy to capture.
-        (bottomNav as? ElasticBottomNavigationView)?.let { pill ->
-            (findViewById<View>(android.R.id.content) as? ViewGroup)?.let(pill::attachBackdropBlur)
-        }
+        // Fork: the landscape nav pill is a solid One UI Quick Share surface now, so the
+        // frosted-glass backdrop blur is intentionally NOT attached.
     }
 
     /**
@@ -439,9 +428,7 @@ class MainActivity : AppCompatActivity() {
         // mDNS publish path each re-check their own permissions
         // internally and gracefully no-op rather than crash.
         // Master switch (#239): an explicit off must survive reopening the app.
-        if (ReceiverMasterSwitch.isEnabled(this) &&
-            !PanelScopedBackgroundPreferences.isEnabled(this)
-        ) {
+        if (ReceiverMasterSwitch.isEnabled(this)) {
             ReceiverForegroundService.start(this)
         }
 

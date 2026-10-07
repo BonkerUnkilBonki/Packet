@@ -30,15 +30,11 @@ import dev.bluehouse.bada.bugreport.BugReportPreferences
 import dev.bluehouse.bada.consent.FullScreenIntentPermission
 import dev.bluehouse.bada.namecard.NameCardProfileStore
 import dev.bluehouse.bada.namecard.NameCardSetupActivity
-import dev.bluehouse.bada.panel.PanelScopedBackgroundPreferences
 import dev.bluehouse.bada.service.downloads.SaveLocationDisplayName
 import dev.bluehouse.bada.service.downloads.SaveLocationPreferences
 import dev.bluehouse.bada.service.receiver.AdvertisedDeviceNames
 import dev.bluehouse.bada.service.receiver.ReceiverForegroundService
 import dev.bluehouse.bada.service.receiver.ReceiverMasterSwitch
-import dev.bluehouse.bada.theme.AccentApplier
-import dev.bluehouse.bada.theme.AppThemeMode
-import dev.bluehouse.bada.theme.ThemePreferences
 import dev.bluehouse.bada.transfer.KeepScreenOnPreferences
 import dev.bluehouse.bada.transfer.TransferExpertViewPreferences
 import dev.bluehouse.bada.update.UpdatePreferences
@@ -179,62 +175,6 @@ internal class SettingsFragment : Fragment(R.layout.fragment_settings) {
             // short-circuit inside the worker).
             BadaApplication.applyAutoUpdateCheckPolicy(requireContext())
         }
-
-        val accentInput = view.findViewById<EditText>(R.id.settings_accent_input)
-        accentInput.setText(ThemePreferences.from(requireContext()).customAccent().orEmpty())
-        view.findViewById<Button>(R.id.settings_accent_apply).setOnClickListener {
-            val hex = accentInput.text?.toString()
-            if (AccentApplier.parse(hex) == null) {
-                Toast.makeText(requireContext(), R.string.settings_accent_invalid, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            ThemePreferences.from(requireContext()).setCustomAccent(hex)
-            requireActivity().recreate()
-        }
-        view.findViewById<Button>(R.id.settings_accent_reset).setOnClickListener {
-            ThemePreferences.from(requireContext()).setCustomAccent(null)
-            accentInput.setText("")
-            requireActivity().recreate()
-        }
-
-        val themeRow = view.findViewById<View>(R.id.settings_theme_row)
-        val themeValue = view.findViewById<TextView>(R.id.settings_theme_value)
-        val themePrefs = ThemePreferences.from(requireContext())
-        themeValue.setText(
-            when (themePrefs.mode()) {
-                AppThemeMode.LIGHT -> R.string.settings_theme_light
-                AppThemeMode.DARK -> R.string.settings_theme_dark
-                AppThemeMode.PITCH_BLACK -> R.string.settings_theme_black
-            },
-        )
-        themeRow.setOnClickListener {
-            val next =
-                when (themePrefs.mode()) {
-                    AppThemeMode.LIGHT -> AppThemeMode.DARK
-                    AppThemeMode.DARK -> AppThemeMode.PITCH_BLACK
-                    AppThemeMode.PITCH_BLACK -> AppThemeMode.LIGHT
-                }
-            themePrefs.setMode(next)
-            ThemePreferences.applyNightMode(requireContext())
-            // Recreate so the pitch-black overlay (applied in onCreate) takes effect.
-            requireActivity().recreate()
-        }
-
-        val panelScopeSwitch = view.findViewById<SwitchCompat>(R.id.settings_panel_scope_switch)
-        val panelScopePreferences = PanelScopedBackgroundPreferences.from(requireContext())
-        panelScopeSwitch.isChecked = panelScopePreferences.isEnabled()
-        panelScopeSwitch.setOnCheckedChangeListener { _, checked ->
-            panelScopePreferences.setEnabled(checked)
-            // Panel-scoped mode ON must immediately stop any already-running
-            // receiver, so Packet stops running in the background until the
-            // panel is opened again. Turning it OFF restores the always-on
-            // receiver (subject to the master switch).
-            if (checked) {
-                ReceiverForegroundService.stop(requireContext())
-            } else if (ReceiverMasterSwitch.isEnabled(requireContext())) {
-                ReceiverForegroundService.start(requireContext())
-            }
-        }
     }
 
     override fun onStart() {
@@ -282,9 +222,9 @@ internal class SettingsFragment : Fragment(R.layout.fragment_settings) {
             val next = !master.isEnabled()
             master.setEnabled(next)
             render(next)
-            if (next && !PanelScopedBackgroundPreferences.isEnabled(requireContext())) {
+            if (next) {
                 ReceiverForegroundService.start(requireContext())
-            } else if (!next) {
+            } else {
                 ReceiverForegroundService.stop(requireContext())
             }
         }
@@ -292,11 +232,7 @@ internal class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     /** Identity refreshes restart the receiver only while the master switch is on. */
     private fun startReceiverIfEnabled() {
-        if (ReceiverMasterSwitch.isEnabled(requireContext()) &&
-            !PanelScopedBackgroundPreferences.isEnabled(requireContext())
-        ) {
-            ReceiverForegroundService.start(requireContext())
-        }
+        if (ReceiverMasterSwitch.isEnabled(requireContext())) ReceiverForegroundService.start(requireContext())
     }
 
     /**
@@ -369,9 +305,6 @@ internal class SettingsFragment : Fragment(R.layout.fragment_settings) {
         v
             .findViewById<SwitchCompat>(R.id.settings_auto_update_switch)
             ?.refreshChecked(UpdatePreferences.from(requireContext()).autoCheckEnabled())
-        v
-            .findViewById<SwitchCompat>(R.id.settings_panel_scope_switch)
-            ?.refreshChecked(PanelScopedBackgroundPreferences.from(requireContext()).isEnabled())
     }
 
     private fun SwitchCompat.refreshChecked(enabled: Boolean) {

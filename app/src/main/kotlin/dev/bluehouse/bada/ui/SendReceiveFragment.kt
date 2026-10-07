@@ -37,7 +37,6 @@ import androidx.lifecycle.lifecycleScope
 import dev.bluehouse.bada.R
 import dev.bluehouse.bada.migration.LegacyPackageDetectorAndroid
 import dev.bluehouse.bada.send.SendActivityInApp
-import dev.bluehouse.bada.service.receiver.AdvertisedDeviceNames
 import dev.bluehouse.bada.service.receiver.MdnsVisibilityOverrideHolder
 import dev.bluehouse.bada.service.receiver.ReceiverMasterSwitch
 import kotlinx.coroutines.Dispatchers
@@ -233,48 +232,6 @@ internal class SendReceiveFragment : Fragment(R.layout.fragment_send_receive) {
         val placeholder2 = buildPolaroidBitmap(null, CARD_2_ROTATION_DEG, colors)
         view.findViewById<ImageView>(R.id.main_send_preview_photo_1).setPolaroidBitmap(placeholder1)
         view.findViewById<ImageView>(R.id.main_send_preview_photo_2).setPolaroidBitmap(placeholder2)
-
-        view.findViewById<TextView>(R.id.qs_device_name)?.text = AdvertisedDeviceNames.resolve(requireContext())
-        wireModeSwitch(view)
-        view.findViewById<View>(R.id.qs_orb_view)?.let { startAmbientPulse(it) }
-    }
-
-    /** Soft ambient pulse used on the receive orb. */
-    private fun startAmbientPulse(view: View) {
-        val animator =
-            android.animation.ObjectAnimator.ofPropertyValuesHolder(
-                view,
-                android.animation.PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.06f),
-                android.animation.PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.06f),
-                android.animation.PropertyValuesHolder.ofFloat(View.ALPHA, 0.85f, 1f),
-            )
-        animator.duration = 1600
-        animator.repeatMode = android.animation.ValueAnimator.REVERSE
-        animator.repeatCount = android.animation.ValueAnimator.INFINITE
-        animator.start()
-    }
-
-
-    private fun wireModeSwitch(view: View) {
-        val receiveContainer = view.findViewById<View>(R.id.qs_receive_container) ?: return
-        val sendContainer = view.findViewById<View>(R.id.qs_send_container) ?: return
-        val receiveTab = view.findViewById<View>(R.id.qs_mode_receive) ?: return
-        val sendTab = view.findViewById<View>(R.id.qs_mode_send) ?: return
-        fun select(send: Boolean) {
-            receiveContainer.visibility = if (send) View.GONE else View.VISIBLE
-            sendContainer.visibility = if (send) View.VISIBLE else View.GONE
-            receiveTab.setBackgroundResource(if (send) android.R.color.transparent else R.drawable.qs_pill_segment_active)
-            sendTab.setBackgroundResource(if (send) R.drawable.qs_pill_segment_active else android.R.color.transparent)
-            (receiveTab as android.view.ViewGroup).getChildAt(1).let {
-                (it as TextView).setTextColor(ContextCompat.getColor(requireContext(), if (send) R.color.qs_text_secondary else R.color.qs_text_primary))
-            }
-            (sendTab as android.view.ViewGroup).getChildAt(1).let {
-                (it as TextView).setTextColor(ContextCompat.getColor(requireContext(), if (send) R.color.qs_text_primary else R.color.qs_text_secondary))
-            }
-        }
-        receiveTab.setOnClickListener { select(false) }
-        sendTab.setOnClickListener { select(true) }
-        select(false)
     }
 
     override fun onStart() {

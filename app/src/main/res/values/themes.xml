@@ -28,9 +28,6 @@
     -->
     <style name="Theme.Bada" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
         <item name="colorPrimary">@color/brand_primary</item>
-        <item name="qsBgTop">@color/qs_bg_top</item>
-        <item name="qsBgBottom">@color/qs_bg_bottom</item>
-        <item name="qsSurface">@color/qs_card</item>
         <item name="colorPrimaryDark">@color/brand_primary</item>
         <item name="colorOnPrimary">@color/brand_on_primary</item>
 
@@ -60,7 +57,7 @@
           the AppCompat light defaults, so light mode is unchanged.
         -->
         <item name="android:colorBackground">@color/page_background</item>
-        <item name="android:windowBackground">@color/page_background</item>
+        <item name="android:windowBackground">@drawable/bg_qs_page_gradient</item>
         <item name="android:colorBackgroundFloating">@color/surface_floating</item>
         <item name="android:statusBarColor" tools:targetApi="l">?android:attr/colorBackground</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">@bool/window_light_status_bar</item>
@@ -120,6 +117,10 @@
 
     <style name="Widget.Bada.Button" parent="Widget.AppCompat.Button">
         <item name="android:background">@drawable/btn_frosted_background</item>
+        <!-- One UI Quick Share pills must render exactly as authored (white, hairline edge);
+             AppCompat's inherited backgroundTint would otherwise grey them out. -->
+        <item name="android:backgroundTint">@null</item>
+        <item name="backgroundTint">@null</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
         <item name="android:textAppearance">@style/TextAppearance.Bada.Button</item>
         <!--
@@ -457,5 +458,23 @@
     <style name="ShapeAppearanceOverlay.Bada.CreditAvatar" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">12dp</item>
+    </style>
+    <!--
+      One UI Quick Share primary action (fork): the filled accent pill used for the affirmative
+      action on the send / receive panels.
+    -->
+    <style name="Widget.Bada.Button.Primary" parent="Widget.Bada.Button">
+        <item name="android:background">@drawable/btn_qs_primary_background</item>
+        <item name="android:textColor">@color/brand_on_primary</item>
+    </style>
+
+    <!--
+      One UI Quick Share header title (fork): compact bold label that sits inside the floating
+      white pill header rather than the upstream 26sp vivo-style bar title.
+    -->
+    <style name="TextAppearance.Bada.QsTitle" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 </resources>

@@ -51,24 +51,24 @@
     <string name="update_button_update">업데이트</string>
     <!-- 자동 업데이트 확인: 알림 + 다운로드/설치 흐름. -->
     <string name="update_notification_channel_name">앱 업데이트</string>
-    <string name="update_notification_channel_desc">GitHub에 새 버전의 Packet가 있으면 알려 줍니다.</string>
-    <string name="update_notification_title">Packet 업데이트가 있습니다</string>
+    <string name="update_notification_channel_desc">GitHub에 새 버전의 Bada가 있으면 알려 줍니다.</string>
+    <string name="update_notification_title">Bada 업데이트가 있습니다</string>
     <string name="update_notification_text">버전 %1$s을(를) 설치할 수 있습니다</string>
     <string name="update_notification_action_github">GitHub에서 보기</string>
     <string name="update_notification_action_download">다운로드 및 설치</string>
     <string name="update_downloading_title">업데이트를 다운로드하는 중…</string>
-    <string name="update_downloading_text">Packet %1$s</string>
+    <string name="update_downloading_text">Bada %1$s</string>
     <string name="update_download_failed_title">업데이트 다운로드 실패</string>
     <string name="update_download_failed_text">업데이트를 다운로드할 수 없습니다. 알림을 눌러 다시 시도하거나 GitHub를 열어 주세요.</string>
-    <string name="update_install_need_unknown_sources">Packet의 앱 설치를 허용한 뒤 다운로드를 다시 눌러 주세요.</string>
+    <string name="update_install_need_unknown_sources">Bada의 앱 설치를 허용한 뒤 다운로드를 다시 눌러 주세요.</string>
     <string name="update_install_started">업데이트를 다운로드하는 중…</string>
-    <string name="update_install_success">Packet가 업데이트되었습니다</string>
+    <string name="update_install_success">Bada가 업데이트되었습니다</string>
     <string name="update_install_failed">업데이트를 설치할 수 없습니다</string>
-    <string name="update_confirm_notification_title">Packet 업데이트 설치 확인</string>
+    <string name="update_confirm_notification_title">Bada 업데이트 설치 확인</string>
     <string name="update_confirm_notification_text">눌러서 업데이트 설치를 마무리하세요.</string>
     <string name="update_open_release_failed">릴리스 페이지를 열 수 없습니다.</string>
     <string name="settings_auto_update_title">자동 업데이트 확인</string>
-    <string name="settings_auto_update_subtitle">6시간마다 GitHub에서 새 Packet 릴리스를 확인하고, 새 버전이 있으면 알림을 표시합니다.</string>
+    <string name="settings_auto_update_subtitle">6시간마다 GitHub에서 새 Bada 릴리스를 확인하고, 새 버전이 있으면 알림을 표시합니다.</string>
 
     <!-- `credit_section_developer`, `credit_section_polisher`,
          `credit_section_qa`, `credit_section_thanks` are intentionally
@@ -122,7 +122,7 @@
 
     <!-- Shake-to-report bug toggle. -->
     <string name="main_bug_report_title">흔들어서 버그 보고</string>
-    <string name="main_bug_report_subtitle">활성화 시 Packet가 열려 있을 때 휴대폰을 흔들면 최근 진단 정보, 기기 상태, 스크린샷을 압축 파일로 묶어 직접 저장할 수 있습니다. 자동으로 업로드되지 않습니다.</string>
+    <string name="main_bug_report_subtitle">활성화 시 Bada가 열려 있을 때 휴대폰을 흔들면 최근 진단 정보, 기기 상태, 스크린샷을 압축 파일로 묶어 직접 저장할 수 있습니다. 자동으로 업로드되지 않습니다.</string>
     <string name="main_keep_screen_on_title">전송 중 화면 켜두기</string>
     <string name="main_keep_screen_on_subtitle">파일을 보내거나 받는 동안 화면이 꺼지지 않게 유지해 긴 전송을 계속 확인하고 안정적으로 진행할 수 있게 합니다.</string>
     <string name="main_transfer_expert_title">전송 상세 정보</string>
@@ -193,11 +193,11 @@
 
     <!-- Settings tab "전체 화면 수신 알림" row + first-launch dialog (Android 14+). -->
     <string name="settings_fsi_title">전체 화면 수신 알림</string>
-    <string name="settings_fsi_subtitle">전체 화면 알림을 허용하면 Packet가 백그라운드에 있을 때 수신 요청이 와도 다른 앱 위나 잠금 화면에서 PIN이 바로 표시됩니다. 허용하지 않아도 알림을 눌러 PIN을 확인할 수 있습니다.</string>
+    <string name="settings_fsi_subtitle">전체 화면 알림을 허용하면 Bada가 백그라운드에 있을 때 수신 요청이 와도 다른 앱 위나 잠금 화면에서 PIN이 바로 표시됩니다. 허용하지 않아도 알림을 눌러 PIN을 확인할 수 있습니다.</string>
     <string name="settings_fsi_status_granted">현재: 전체 화면 알림 허용됨</string>
     <string name="settings_fsi_status_not_granted">현재: 허용되지 않음. PIN 요청이 알림으로 표시됩니다</string>
     <string name="settings_fsi_open">알림 설정 열기</string>
-    <string name="fsi_dialog_body">Packet가 백그라운드에 있을 때 수신 요청이 오면, 화면 위로 PIN 요청을 띄우기 위해 전체 화면 알림 권한이 필요합니다. 허용하지 않으면 요청이 일반 알림으로 도착하며, 눌러서 열 수 있습니다. 설정을 열어 허용하거나, 나중에 설정 탭에서 처리하려면 건너뛰세요.</string>
+    <string name="fsi_dialog_body">Bada가 백그라운드에 있을 때 수신 요청이 오면, 화면 위로 PIN 요청을 띄우기 위해 전체 화면 알림 권한이 필요합니다. 허용하지 않으면 요청이 일반 알림으로 도착하며, 눌러서 열 수 있습니다. 설정을 열어 허용하거나, 나중에 설정 탭에서 처리하려면 건너뛰세요.</string>
     <string name="fsi_dialog_skip_toast">설정에서 변경할 수 있습니다.</string>
 
     <!-- Permissions onboarding (#26 + #31). -->
@@ -212,7 +212,7 @@
 
     <!-- Same-Wi-Fi-network onboarding card (#85). -->
     <string name="onboarding_network_card_title">근처 검색 요건</string>
-    <string name="onboarding_network_card_body">공유 Wi-Fi는 여전히 Quick Share의 기본 경로이며, 특히 받기에 사용됩니다. 근처 기본 Quick Share 기기로 보낼 때 두 기기가 LAN 외부에 있다면 Packet는 Bluetooth 보조 부트스트랩도 사용할 수 있으니 이 경로를 위해 Bluetooth를 켜두세요.</string>
+    <string name="onboarding_network_card_body">공유 Wi-Fi는 여전히 Quick Share의 기본 경로이며, 특히 받기에 사용됩니다. 근처 기본 Quick Share 기기로 보낼 때 두 기기가 LAN 외부에 있다면 Bada는 Bluetooth 보조 부트스트랩도 사용할 수 있으니 이 경로를 위해 Bluetooth를 켜두세요.</string>
     <string name="onboarding_network_card_dismiss">확인</string>
 
     <!-- NEARBY_WIFI_DEVICES (API 33+). -->
@@ -237,7 +237,7 @@
 
     <!-- ACCESS_FINE_LOCATION (legacy nearby-device discovery). -->
     <string name="permission_legacy_nearby_location_title">근처 기기 위치 권한</string>
-    <string name="permission_legacy_nearby_location_rationale">Android 11 이하에서는 Bluetooth Low Energy 스캔 결과가 위치 권한을 통해 전달됩니다. Packet는 이 권한을 근처 Quick Share 기기 검색에만 사용하며 사용자의 물리적 위치는 사용하지 않습니다.</string>
+    <string name="permission_legacy_nearby_location_rationale">Android 11 이하에서는 Bluetooth Low Energy 스캔 결과가 위치 권한을 통해 전달됩니다. Bada는 이 권한을 근처 Quick Share 기기 검색에만 사용하며 사용자의 물리적 위치는 사용하지 않습니다.</string>
 
     <!-- Permission status labels. -->
     <string name="permission_status_granted">허용됨</string>
@@ -266,7 +266,7 @@
     <string name="send_help_link">찾는 기기가 보이지 않나요?</string>
     <string name="send_help_sheet_title">찾는 기기가 보이지 않나요?</string>
     <string name="send_help_sheet_visibility_title">수신 기기 상태 확인</string>
-    <string name="send_help_sheet_visibility_body">받는 기기에서 \'받을 준비 완료\' 상태인지 확인하세요. 이 상태일 때 주변의 모든 사람이 파일을 공유할 수 있습니다. 이미 이 상태인데도 여기에 나타나지 않는다면 양쪽 기기에서 Packet를 완전히 종료한 뒤 다시 실행해 보세요.</string>
+    <string name="send_help_sheet_visibility_body">받는 기기에서 \'받을 준비 완료\' 상태인지 확인하세요. 이 상태일 때 주변의 모든 사람이 파일을 공유할 수 있습니다. 이미 이 상태인데도 여기에 나타나지 않는다면 양쪽 기기에서 Bada를 완전히 종료한 뒤 다시 실행해 보세요.</string>
     <string name="send_help_sheet_qr_title">QR 코드로 공유</string>
     <string name="send_help_sheet_qr_body">그래도 기기가 보이지 않는다면 카드 우측 상단의 QR 코드 버튼을 누르세요. 받는 사람이 QR 코드를 스캔하거나 링크에 접속하면 파일을 전송할 수 있습니다.</string>
     <string name="send_help_sheet_compat_title">호환 가능 기기 확인</string>
@@ -315,7 +315,7 @@
 
     <!-- Shake-to-report bug-report flow (#162). -->
     <string name="bug_report_confirm_title">버그를 보고하시겠습니까?</string>
-    <string name="bug_report_confirm_body">Packet가 최근 앱 진단 정보, 기기 상태, 스크린샷을 압축 파일로 모은 뒤 사용자가 저장 위치를 선택할 때까지 기기에만 보관합니다.</string>
+    <string name="bug_report_confirm_body">Bada가 최근 앱 진단 정보, 기기 상태, 스크린샷을 압축 파일로 모은 뒤 사용자가 저장 위치를 선택할 때까지 기기에만 보관합니다.</string>
     <string name="bug_report_confirm_yes">예</string>
     <string name="bug_report_confirm_no">아니요</string>
     <string name="bug_report_include_bssid_label">식별 가능성이 높은 정보 포함 (Wi-Fi BSSID 및 주변 기기 진단 정보)</string>
@@ -378,12 +378,12 @@
     <string name="consent_state_close">닫기</string>
     <string name="consent_state_view_image_unavailable">이 이미지를 열 수 있는 앱이 없습니다.</string>
 
-    <!-- Quick Settings tile. `qs_tile_label` ("Packet") is a proper noun
+    <!-- Quick Settings tile. `qs_tile_label` ("Bada") is a proper noun
          and intentionally NOT overridden here. -->
     <string name="qs_tile_subtitle_on">검색 가능</string>
     <string name="qs_tile_subtitle_off">꺼짐</string>
-    <string name="qs_tile_content_desc_on">근처 기기에서 Packet를 검색할 수 있습니다</string>
-    <string name="qs_tile_content_desc_off">Packet를 검색할 수 없습니다</string>
+    <string name="qs_tile_content_desc_on">근처 기기에서 Bada를 검색할 수 있습니다</string>
+    <string name="qs_tile_content_desc_off">Bada를 검색할 수 없습니다</string>
 
     <!-- Locale parity backfill: Name Card (#251), receive-waiting sheet,
          NFC tap-to-share settings, empty-state radio hints, consent style,
@@ -407,17 +407,17 @@
     <string name="send_status_tap_waiting_wifi">Wi‑Fi 대기 중…</string>
     <string name="consent_state_waiting_title">수신 준비 완료</string>
     <string name="consent_state_waiting_body">근처 기기의 공유를 기다리는 중…</string>
-    <string name="nfc_tap_hce_service_description">Packet Quick Share 탭 공유</string>
-    <string name="nfc_hce_service_description">Packet NFC 링크</string>
-    <string name="nfc_namecard_hce_service_description">Packet 네임 카드</string>
-    <string name="settings_master_on">Packet 사용 중</string>
-    <string name="settings_master_off">Packet 사용 안 함</string>
-    <string name="main_master_off_caption">Packet가 꺼져 있습니다. 파일을 받으려면 설정에서 켜세요.</string>
+    <string name="nfc_tap_hce_service_description">Bada Quick Share 탭 공유</string>
+    <string name="nfc_hce_service_description">Bada NFC 링크</string>
+    <string name="nfc_namecard_hce_service_description">Bada 네임 카드</string>
+    <string name="settings_master_on">Bada 사용 중</string>
+    <string name="settings_master_off">Bada 사용 안 함</string>
+    <string name="main_master_off_caption">Bada가 꺼져 있습니다. 파일을 받으려면 설정에서 켜세요.</string>
     <string name="settings_name_card_row_title">네임 카드</string>
     <string name="settings_name_card_row_subtitle">폰을 맞대어 공유할 연락처 카드를 설정합니다</string>
     <string name="name_card_activity_label">네임 카드</string>
     <string name="name_card_setup_title">내 네임 카드</string>
-    <string name="name_card_setup_subtitle">두 폰을 맞대면 상대 Packet 폰과 공유됩니다. 비워 두면 휴대폰의 기기 이름과 번호가 대신 사용됩니다.</string>
+    <string name="name_card_setup_subtitle">두 폰을 맞대면 상대 Bada 폰과 공유됩니다. 비워 두면 휴대폰의 기기 이름과 번호가 대신 사용됩니다.</string>
     <string name="name_card_enable_title">폰을 맞댈 때 내 카드 공유</string>
     <string name="name_card_field_name">이름</string>
     <string name="name_card_field_phone">전화번호</string>

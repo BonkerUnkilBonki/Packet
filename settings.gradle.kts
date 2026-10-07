@@ -10,6 +10,8 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    // NOTE (fork): the protobuf Gradle plugin marker is not resolvable from plugins.gradle.org in
+    // this build environment, so map the plugin id straight at the Maven Central module.
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id == "com.google.protobuf") {
@@ -18,15 +20,18 @@ pluginManagement {
         }
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://jitpack.io") } // libadb-android (self-ADB Wi-Fi)
     }
 }
+
 rootProject.name = "Bada"
+
 include(":app")
 include(":radio-helper")
 include(":service-android")

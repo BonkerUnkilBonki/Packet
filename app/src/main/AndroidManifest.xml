@@ -310,20 +310,6 @@
             </intent-filter>
         </activity>
 
-        <!--
-          One UI Quick Share bottom panel. Opened from the Quick Settings
-          tile; floats over the app the user is currently in. taskAffinity=""
-          gives it its own task so launching it never pulls Packet's main
-          task to the foreground.
-        -->
-        <activity
-            android:name=".panel.QuickSharePanelActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTop"
-            android:taskAffinity=""
-            android:theme="@style/Theme.Packet.Panel" />
-
         <activity
             android:name=".onboarding.PermissionsOnboardingActivity"
             android:exported="false"

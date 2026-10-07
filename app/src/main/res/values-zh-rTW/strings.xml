@@ -72,7 +72,7 @@
 
     <!-- Shake-to-report bug toggle. -->
     <string name="main_bug_report_title">搖動手機回報錯誤</string>
-    <string name="main_bug_report_subtitle">啟用後，在 Packet 開啟時搖動手機，即可將近期診斷紀錄、裝置狀態與螢幕截圖打包成 ZIP 檔，自行儲存。不會自動上傳任何內容。</string>
+    <string name="main_bug_report_subtitle">啟用後，在 Bada 開啟時搖動手機，即可將近期診斷紀錄、裝置狀態與螢幕截圖打包成 ZIP 檔，自行儲存。不會自動上傳任何內容。</string>
     <string name="main_keep_screen_on_title">傳輸時保持螢幕開啟</string>
     <string name="main_keep_screen_on_subtitle">傳送或接收檔案時保持螢幕喚醒，方便查看長時間傳輸並提升連線可靠性。</string>
     <string name="main_transfer_expert_title">傳輸詳細資訊</string>
@@ -144,11 +144,11 @@
     <!-- Settings tab "Full-screen transfer alerts" row + first-launch
          dialog (Android 14+). -->
     <string name="settings_fsi_title">全螢幕傳輸提醒</string>
-    <string name="settings_fsi_subtitle">允許全螢幕通知，以便在 Packet 於背景執行時，將傳入的傳輸 PIN 碼顯示在其他應用程式上方或鎖定畫面上。未啟用時，仍會收到可點選來檢視 PIN 碼的通知。</string>
+    <string name="settings_fsi_subtitle">允許全螢幕通知，以便在 Bada 於背景執行時，將傳入的傳輸 PIN 碼顯示在其他應用程式上方或鎖定畫面上。未啟用時，仍會收到可點選來檢視 PIN 碼的通知。</string>
     <string name="settings_fsi_status_granted">目前：已允許全螢幕提醒</string>
     <string name="settings_fsi_status_not_granted">目前：未允許，PIN 碼提醒會以通知形式呈現</string>
     <string name="settings_fsi_open">開啟通知設定</string>
-    <string name="fsi_dialog_body">當 Packet 在背景執行時收到傳輸請求，Android 需要全螢幕通知權限才能將 PIN 碼提醒顯示在畫面上。未授予此權限時，提醒會以一般通知形式出現，點選即可開啟。請開啟設定以允許，或選擇 [略過] 稍後從設定頁籤處理。</string>
+    <string name="fsi_dialog_body">當 Bada 在背景執行時收到傳輸請求，Android 需要全螢幕通知權限才能將 PIN 碼提醒顯示在畫面上。未授予此權限時，提醒會以一般通知形式出現，點選即可開啟。請開啟設定以允許，或選擇 [略過] 稍後從設定頁籤處理。</string>
     <string name="fsi_dialog_skip_toast">稍後可從設定中變更。</string>
 
     <!-- Permissions onboarding (#26 + #31). -->
@@ -163,7 +163,7 @@
 
     <!-- Same-Wi-Fi-network onboarding card (#85). -->
     <string name="onboarding_network_card_title">搜尋附近裝置的需求</string>
-    <string name="onboarding_network_card_body">共用 Wi-Fi 仍是 Quick Share 的基本路徑，尤其在接收時。傳送給附近的原生 Quick Share 裝置時，若兩端不在同一區域網路，Packet 也可使用藍牙輔助連線。請保持藍牙開啟以使用該路徑。</string>
+    <string name="onboarding_network_card_body">共用 Wi-Fi 仍是 Quick Share 的基本路徑，尤其在接收時。傳送給附近的原生 Quick Share 裝置時，若兩端不在同一區域網路，Bada 也可使用藍牙輔助連線。請保持藍牙開啟以使用該路徑。</string>
     <string name="onboarding_network_card_dismiss">好</string>
 
     <!-- NEARBY_WIFI_DEVICES (API 33+). -->
@@ -188,7 +188,7 @@
 
     <!-- ACCESS_FINE_LOCATION (legacy nearby-device discovery). -->
     <string name="permission_legacy_nearby_location_title">附近裝置的位置存取權</string>
-    <string name="permission_legacy_nearby_location_rationale">Android 11 及更早版本會透過定位權限提供藍牙低功耗掃描結果。Packet 僅使用此權限搜尋附近的 Quick Share 裝置，不會使用實際位置。</string>
+    <string name="permission_legacy_nearby_location_rationale">Android 11 及更早版本會透過定位權限提供藍牙低功耗掃描結果。Bada 僅使用此權限搜尋附近的 Quick Share 裝置，不會使用實際位置。</string>
 
     <!-- Permission status labels. -->
     <string name="permission_status_granted">已授予</string>
@@ -211,11 +211,11 @@
     <string name="send_help_link">找不到裝置？</string>
     <string name="send_help_sheet_title">找不到裝置？</string>
     <string name="send_help_sheet_visibility_title">確認接收端的模式</string>
-    <string name="send_help_sheet_visibility_body">請在接收端確認切換鈕顯示為「準備接收」。在此模式下，附近所有人都能傳送檔案過來。若已在此模式但仍未在清單中出現，請嘗試在兩端完全關閉 Packet 後重新開啟。</string>
+    <string name="send_help_sheet_visibility_body">請在接收端確認切換鈕顯示為「準備接收」。在此模式下，附近所有人都能傳送檔案過來。若已在此模式但仍未在清單中出現，請嘗試在兩端完全關閉 Bada 後重新開啟。</string>
     <string name="send_help_sheet_qr_title">或透過 QR code 分享</string>
     <string name="send_help_sheet_qr_body">若接收端仍未出現，請點選此卡片右上方的 QR code 按鈕。請讓接收端掃描 QR code 或開啟連結以開始傳輸。</string>
     <string name="send_help_sheet_compat_title">確認裝置相容性</string>
-    <string name="send_help_sheet_compat_body">Packet 目前是實驗性專案。在某些裝置上，對方可能可被搜尋到但無法接收檔案，部分裝置可能完全無法被搜尋。未來更新預計會擴大裝置支援範圍。</string>
+    <string name="send_help_sheet_compat_body">Bada 目前是實驗性專案。在某些裝置上，對方可能可被搜尋到但無法接收檔案，部分裝置可能完全無法被搜尋。未來更新預計會擴大裝置支援範圍。</string>
     <string name="send_help_sheet_close">瞭解</string>
 
     <string name="send_show_qr">顯示 QR code</string>
@@ -258,7 +258,7 @@
 
     <!-- Shake-to-report bug-report flow (#162). -->
     <string name="bug_report_confirm_title">是否要回報錯誤？</string>
-    <string name="bug_report_confirm_body">Packet 將收集近期的應用程式診斷紀錄、裝置狀態及螢幕截圖，打包成 ZIP 檔留存在裝置上，直到選擇儲存位置為止。</string>
+    <string name="bug_report_confirm_body">Bada 將收集近期的應用程式診斷紀錄、裝置狀態及螢幕截圖，打包成 ZIP 檔留存在裝置上，直到選擇儲存位置為止。</string>
     <string name="bug_report_confirm_yes">是</string>
     <string name="bug_report_confirm_no">否</string>
     <string name="bug_report_include_bssid_label">包含較容易識別身分的詳細資訊（Wi-Fi BSSID 與鄰近裝置診斷資訊）</string>
@@ -318,12 +318,12 @@
 
     <string name="transfer_progress_percent">%1$d%%</string>
 
-    <!-- Quick Settings tile. `qs_tile_label` ("Packet") is a proper noun
+    <!-- Quick Settings tile. `qs_tile_label` ("Bada") is a proper noun
          and intentionally NOT overridden here. -->
     <string name="qs_tile_subtitle_on">可供搜尋</string>
     <string name="qs_tile_subtitle_off">關閉</string>
-    <string name="qs_tile_content_desc_on">附近裝置目前可以搜尋到 Packet</string>
-    <string name="qs_tile_content_desc_off">附近裝置目前無法搜尋到 Packet</string>
+    <string name="qs_tile_content_desc_on">附近裝置目前可以搜尋到 Bada</string>
+    <string name="qs_tile_content_desc_off">附近裝置目前無法搜尋到 Bada</string>
 
     <!-- "檢查更新" overflow item + screen. -->
     <string name="menu_check_updates">檢查更新</string>
@@ -338,24 +338,24 @@
     <string name="update_button_update">更新</string>
     <!-- 自動檢查更新：通知 + 下載/安裝流程。 -->
     <string name="update_notification_channel_name">應用程式更新</string>
-    <string name="update_notification_channel_desc">當 GitHub 上有較新版本的 Packet 時通知您。</string>
-    <string name="update_notification_title">Packet 有可用更新</string>
+    <string name="update_notification_channel_desc">當 GitHub 上有較新版本的 Bada 時通知您。</string>
+    <string name="update_notification_title">Bada 有可用更新</string>
     <string name="update_notification_text">版本 %1$s 已可安裝</string>
     <string name="update_notification_action_github">在 GitHub 上檢視</string>
     <string name="update_notification_action_download">下載並安裝</string>
     <string name="update_downloading_title">正在下載更新…</string>
-    <string name="update_downloading_text">Packet %1$s</string>
+    <string name="update_downloading_text">Bada %1$s</string>
     <string name="update_download_failed_title">更新下載失敗</string>
     <string name="update_download_failed_text">無法下載更新。請點選通知重試，或開啟 GitHub。</string>
-    <string name="update_install_need_unknown_sources">請允許 Packet 安裝應用程式，然後再次點選下載。</string>
+    <string name="update_install_need_unknown_sources">請允許 Bada 安裝應用程式，然後再次點選下載。</string>
     <string name="update_install_started">正在下載更新…</string>
-    <string name="update_install_success">Packet 已更新</string>
+    <string name="update_install_success">Bada 已更新</string>
     <string name="update_install_failed">無法安裝更新</string>
-    <string name="update_confirm_notification_title">確認安裝 Packet 更新</string>
+    <string name="update_confirm_notification_title">確認安裝 Bada 更新</string>
     <string name="update_confirm_notification_text">點選以完成更新安裝。</string>
     <string name="update_open_release_failed">無法開啟發行頁面。</string>
     <string name="settings_auto_update_title">自動檢查更新</string>
-    <string name="settings_auto_update_subtitle">每 6 小時在 GitHub 檢查是否有新的 Packet 版本，並在有新版本時顯示通知。</string>
+    <string name="settings_auto_update_subtitle">每 6 小時在 GitHub 檢查是否有新的 Bada 版本，並在有新版本時顯示通知。</string>
 
     <!-- Locale parity backfill: Name Card (#251), receive-waiting sheet,
          NFC tap-to-share settings, empty-state radio hints, consent style,
@@ -388,17 +388,17 @@
     <string name="send_status_tap_waiting_wifi">正在等待 Wi‑Fi…</string>
     <string name="consent_state_waiting_title">已準備好接收</string>
     <string name="consent_state_waiting_body">正在等待附近裝置分享…</string>
-    <string name="nfc_tap_hce_service_description">Packet Quick Share 輕觸分享</string>
-    <string name="nfc_hce_service_description">Packet NFC 連結</string>
-    <string name="nfc_namecard_hce_service_description">Packet 名片</string>
-    <string name="settings_master_on">Packet 已開啟</string>
-    <string name="settings_master_off">Packet 已關閉</string>
-    <string name="main_master_off_caption">Packet 已關閉。要接收檔案，請在設定中開啟。</string>
+    <string name="nfc_tap_hce_service_description">Bada Quick Share 輕觸分享</string>
+    <string name="nfc_hce_service_description">Bada NFC 連結</string>
+    <string name="nfc_namecard_hce_service_description">Bada 名片</string>
+    <string name="settings_master_on">Bada 已開啟</string>
+    <string name="settings_master_off">Bada 已關閉</string>
+    <string name="main_master_off_caption">Bada 已關閉。要接收檔案，請在設定中開啟。</string>
     <string name="settings_name_card_row_title">名片</string>
     <string name="settings_name_card_row_subtitle">設定手機輕碰時分享的聯絡人名片</string>
     <string name="name_card_activity_label">名片</string>
     <string name="name_card_setup_title">我的名片</string>
-    <string name="name_card_setup_subtitle">兩台手機輕碰時與對方的 Packet 手機分享。留空則使用手機本身的名稱與號碼。</string>
+    <string name="name_card_setup_subtitle">兩台手機輕碰時與對方的 Bada 手機分享。留空則使用手機本身的名稱與號碼。</string>
     <string name="name_card_enable_title">手機輕碰時分享我的名片</string>
     <string name="name_card_field_name">姓名</string>
     <string name="name_card_field_phone">電話</string>

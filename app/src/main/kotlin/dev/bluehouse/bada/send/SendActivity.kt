@@ -1487,13 +1487,8 @@ public class SendActivity : AppCompatActivity() {
      * 24dp corner. The activity content frame is the hierarchy it captures.
      */
     private fun wireCancelButtonBlur() {
-        val root = binding.root as? ViewGroup ?: return
-        binding.sendCancelBlur.attachBackdropBlur(
-            root = root,
-            blurRadiusDp = CANCEL_BLUR_RADIUS_DP,
-            cornerRadiusDp = CANCEL_BLUR_CORNER_DP,
-            tint = ContextCompat.getColor(this, R.color.frosted_button_fill),
-        )
+        // Fork: the frosted-glass backdrop blur was removed — the Cancel / Done plate is a solid
+        // One UI Quick Share surface, so there is nothing to blur behind it.
     }
 
     /**

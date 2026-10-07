@@ -1,5 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#33FFFFFF">
-    <item android:id="@android:id/mask"><shape android:shape="rectangle"><solid android:color="#FFFFFFFF" /><corners android:radius="24dp" /></shape></item>
-    <item><shape android:shape="rectangle"><solid android:color="#2E7DF6" /><corners android:radius="24dp" /></shape></item>
+<!--
+  Active-state background for the always-visible toggle button on the
+  Send/Receive tab. A pill-shaped blue gradient that mirrors the
+  small QR launch button's surface treatment (135° linear gradient
+  from a darker navy at the top-left to brand blue at the bottom-
+  right) but at the same 24dp corner radius the rest of the app's
+  buttons use, so the toggle reads as "the same button family, but
+  switched on".
+
+  Layers:
+    * Mask — clips the ripple to the same 24dp corner radius so the
+      tap glow never spills out of the rounded ends.
+    * Default — the linear blue gradient fill.
+    * Ripple color — soft white at low alpha so a press glows on top
+      of the gradient without washing it out.
+    * Pressed wash — the same instant state_pressed overlay the
+      frosted button family carries, but in white: the brand-blue
+      `frosted_button_pressed` token would vanish on this blue
+      gradient, so the wash matches the ripple's white instead.
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#26FFFFFF">
+
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFFFF" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <gradient
+                android:angle="135"
+                android:endColor="#5B82FF"
+                android:startColor="#2D58D5"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item>
+        <selector>
+            <item android:state_pressed="true">
+                <shape android:shape="rectangle">
+                    <solid android:color="#33FFFFFF" />
+                    <corners android:radius="24dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+
 </ripple>

@@ -17,7 +17,7 @@ package dev.bluehouse.bada.update
  */
 internal object UpdateApkAssets {
     /** Release APK naming rule — see `app/build.gradle.kts` output renaming. */
-    private const val APP_APK_PREFIX = "com.packet.quickshare-"
+    private const val APP_APK_PREFIX = "dev.bluehouse.bada-"
 
     fun selectAppApkUrl(assets: List<ReleaseAsset>): String? =
         assets

@@ -520,16 +520,17 @@
                     <Button
                         android:id="@+id/send_cancel_button"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="52dp"
                         android:background="@drawable/btn_frosted_outline_background"
                         android:text="@string/send_cancel" />
 
                     <Button
                         android:id="@+id/send_done_button"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/btn_frosted_outline_background"
+                        android:layout_height="52dp"
+                        android:background="@drawable/btn_qs_primary_background"
                         android:text="@string/send_done"
+                        android:textColor="@color/brand_on_primary"
                         android:visibility="gone" />
 
                 </FrameLayout>
